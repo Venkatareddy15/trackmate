@@ -79,26 +79,44 @@ router.post('/google', async (req, res) => {
 
         if (isAccessToken) {
             // Handle Access Token from custom button
-            console.log('Verifying Google Access Token...');
-            const response = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`);
-            ({ name, email, picture, sub: googleId } = response.data);
+            console.log('Verifying Google Access Token via userinfo endpoint...');
+            try {
+                const response = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`);
+                ({ name, email, picture, sub: googleId } = response.data);
+                console.log('Google verification successful for:', email);
+            } catch (googleError) {
+                console.error('GOOGLE_USERINFO_ERROR:', googleError.response?.data || googleError.message);
+                return res.status(401).json({
+                    message: 'Google Access Token verification failed',
+                    error: googleError.response?.data?.error_description || googleError.message
+                });
+            }
         } else {
             // Handle ID Token from standard GoogleLogin component
-            console.log('Verifying Google ID Token...');
-            const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-            const ticket = await client.verifyIdToken({
-                idToken: token,
-                audience: process.env.GOOGLE_CLIENT_ID,
-            });
-            ({ name, email, picture, sub: googleId } = ticket.getPayload());
+            console.log('Verifying Google ID Token via Google library...');
+            try {
+                const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+                const ticket = await client.verifyIdToken({
+                    idToken: token,
+                    audience: process.env.GOOGLE_CLIENT_ID,
+                });
+                ({ name, email, picture, sub: googleId } = ticket.getPayload());
+                console.log('Google ID Token verification successful for:', email);
+            } catch (ticketError) {
+                console.error('GOOGLE_TICKET_ERROR:', ticketError.message);
+                return res.status(401).json({
+                    message: 'Google ID Token verification failed',
+                    error: ticketError.message
+                });
+            }
         }
 
         if (!email) {
-            console.error('GOOGLE_AUTH_ERROR: No email found in Google payload');
+            console.error('GOOGLE_AUTH_ERROR: Email is missing in Google payload');
             return res.status(400).json({ message: 'Google account must have an email associated.' });
         }
 
-        // 🛡️ Admin Protection: Block public ADMIN registration/login via Google (except for authorized admin)
+        // 🛡️ Admin Protection
         const AUTHORIZED_ADMIN = process.env.ADMIN_EMAIL;
         if (role === 'ADMIN' && (!AUTHORIZED_ADMIN || email.toLowerCase() !== AUTHORIZED_ADMIN.toLowerCase())) {
             return res.status(401).json({ message: 'Unauthorized: Admin accounts cannot be created publicly.' });
@@ -112,29 +130,28 @@ router.post('/google', async (req, res) => {
                 name,
                 email,
                 password: Math.random().toString(36).slice(-8),
-                role: [role || 'PASSENGER'], // Store as array
+                role: [role || 'PASSENGER'],
                 profileImage: picture,
                 googleId,
                 isVerified: true
             });
+            console.log('New user created via Google:', email);
 
             const { sendWelcomeEmail } = require('../utils/emailService');
             sendWelcomeEmail(email, name);
         } else {
             // Existing user - Update googleId if missing
-            if (!user.googleId) {
-                user.googleId = googleId;
-                await user.save();
-            }
+            if (!user.googleId) user.googleId = googleId;
 
-            // 🛠️ Auto-add role if it's not present (Fix for Sign up with Google for existing users)
+            // Auto-add role if missing
             if (role && !user.role.includes(role)) {
                 user.role.push(role);
-                await user.save();
             }
+            await user.save();
+            console.log('Existing user logged in via Google:', email);
         }
 
-        // 🛡️ Admin Protection & Auto-Assignment for Authorized User
+        // 🛡️ Admin Auto-Assignment
         if (AUTHORIZED_ADMIN && email.toLowerCase() === AUTHORIZED_ADMIN.toLowerCase()) {
             if (!user.role.includes('ADMIN')) {
                 user.role.push('ADMIN');
@@ -158,11 +175,10 @@ router.post('/google', async (req, res) => {
             token: generateToken(user._id)
         });
     } catch (error) {
-        console.error('GOOGLE_AUTH_ERROR:', error.response?.data || error.message);
+        console.error('GLOBAL_GOOGLE_AUTH_ERROR:', error.message);
         res.status(500).json({
-            message: 'Google authentication failed',
-            details: process.env.NODE_ENV === 'development' ? error.message : undefined,
-            error: error.message // Temporarily include error message for production debugging
+            message: 'Global Google authentication failure',
+            error: error.message
         });
     }
 });
