@@ -80,24 +80,32 @@ const Profile = () => {
         setLinkedUpi(linkedUpi.filter(upi => upi.id !== id));
     };
 
+    const [transactions, setTransactions] = useState([]);
+
     const fetchData = async () => {
         if (!user) return;
 
         try {
             if (user.role === 'TRAVELLER') {
-                const [tripsRes, bookingsRes, requestsRes] = await Promise.all([
+                const [tripsRes, bookingsRes, requestsRes, paymentsRes] = await Promise.all([
                     API.get('/trips/my-trips'),
                     API.get('/bookings/my-bookings'),
-                    API.get('/bookings/active-requests-v1')
+                    API.get('/bookings/active-requests-v1'),
+                    API.get('/payments/history')
                 ]);
                 setMyTrips(tripsRes.data);
                 setMyBookings(bookingsRes.data);
                 setPendingRequests(requestsRes.data);
+                setTransactions(paymentsRes.data);
             } else {
-                // Passengers only need their bookings
-                const { data } = await API.get('/bookings/my-bookings');
-                setMyBookings(data);
-                setMyTrips([]); // Passengers have no published trips
+                // Passengers
+                const [bookingsRes, paymentsRes] = await Promise.all([
+                    API.get('/bookings/my-bookings'),
+                    API.get('/payments/history')
+                ]);
+                setMyBookings(bookingsRes.data);
+                setTransactions(paymentsRes.data);
+                setMyTrips([]);
                 setPendingRequests([]);
             }
         } catch (err) {
@@ -436,24 +444,44 @@ const Profile = () => {
                                 <div className="space-y-6">
                                     <h2 className="text-2xl font-bold text-slate-900">Transaction History</h2>
                                     <div className="grid grid-cols-1 gap-4">
-                                        {myBookings.filter(b => b.paymentStatus === 'PAID').map(booking => (
-                                            <div key={booking._id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600">
-                                                        <CreditCard className="w-6 h-6" />
+                                        {transactions.map(tx => (
+                                            <div key={tx._id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between group hover:border-slate-300 transition-all">
+                                                <div className="flex items-center gap-5">
+                                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${tx.direction === 'IN' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                                                        {tx.direction === 'IN' ? <TrendingUp className="w-6 h-6" /> : <CreditCard className="w-6 h-6" />}
                                                     </div>
                                                     <div>
-                                                        <p className="font-bold text-slate-900">₹{booking.fare}</p>
-                                                        <p className="text-xs text-slate-500 uppercase tracking-wider">{booking.paymentMethod} • {new Date(booking.updatedAt).toLocaleDateString()}</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="font-[900] text-lg text-slate-900 underline decoration-slate-200 decoration-2 underline-offset-4">₹{tx.amount}</p>
+                                                            <span className={`text-[8px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest ${tx.direction === 'IN' ? 'bg-emerald-500 text-white' : 'bg-slate-900 text-white'}`}>
+                                                                {tx.direction === 'IN' ? 'Received' : 'Paid'}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">
+                                                            {tx.method} • {new Date(tx.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                        </p>
                                                     </div>
                                                 </div>
-                                                <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400">
-                                                    <Download className="w-5 h-5" />
-                                                </button>
+                                                <div className="text-right hidden sm:block">
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Mission Route</p>
+                                                    <p className="text-xs font-bold text-slate-600 truncate max-w-[150px]">
+                                                        {tx.trip?.startPoint?.address?.split(',')[0]} → {tx.trip?.endPoint?.address?.split(',')[0]}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <button className="p-2.5 hover:bg-slate-50 border border-transparent hover:border-slate-100 rounded-xl text-slate-400 transition-all">
+                                                        <Download className="w-5 h-5" />
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))}
-                                        {myBookings.filter(b => b.paymentStatus === 'PAID').length === 0 && (
-                                            <div className="text-center py-12 text-slate-500">No payment history found.</div>
+                                        {transactions.length === 0 && (
+                                            <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200 shadow-inner">
+                                                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                    <Wallet className="w-8 h-8 text-slate-300" />
+                                                </div>
+                                                <p className="text-slate-500 font-bold">No transactions logged yet.</p>
+                                            </div>
                                         )}
                                     </div>
                                 </div>

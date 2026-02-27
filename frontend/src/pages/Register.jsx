@@ -53,7 +53,7 @@ const Register = () => {
         }
     };
 
-    const roleColor = role === 'PASSENGER' ? 'emerald' : 'blue';
+    const roleColor = 'emerald';
 
     return (
         <div className="min-h-screen relative flex items-center justify-center px-4 py-24 bg-[#FAFAFA]">
@@ -68,7 +68,7 @@ const Register = () => {
             >
                 <div className="bg-white border border-slate-200 p-8 md:p-12 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
                     <div className="text-center mb-10">
-                        <h2 className="text-3xl font-bold text-slate-900 mb-2">Create your account</h2>
+                        <h2 className="text-3xl font-bold text-slate-800 mb-2">Create your account</h2>
                         <p className="text-slate-500 text-sm font-medium">Join our community and start your journey.</p>
 
                         {/* Notice for multiple email fix */}
@@ -101,7 +101,7 @@ const Register = () => {
                                         required
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-slate-400 focus:ring-4 focus:ring-slate-100 outline-none transition-all text-sm font-medium text-slate-900"
+                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-slate-400 focus:ring-4 focus:ring-slate-100 outline-none transition-all text-sm font-medium text-slate-800"
                                         placeholder="John Doe"
                                     />
                                 </div>
@@ -116,7 +116,7 @@ const Register = () => {
                                         required
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-slate-400 focus:ring-4 focus:ring-slate-100 outline-none transition-all text-sm font-medium text-slate-900"
+                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-slate-400 focus:ring-4 focus:ring-slate-100 outline-none transition-all text-sm font-medium text-slate-800"
                                         placeholder="name@email.com"
                                     />
                                 </div>
@@ -131,7 +131,7 @@ const Register = () => {
                                         required
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
-                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-slate-400 focus:ring-4 focus:ring-slate-100 outline-none transition-all text-sm font-medium text-slate-900"
+                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-slate-400 focus:ring-4 focus:ring-slate-100 outline-none transition-all text-sm font-medium text-slate-800"
                                         placeholder="+91 00000 00000"
                                     />
                                 </div>
@@ -146,7 +146,7 @@ const Register = () => {
                                         required
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-slate-400 focus:ring-4 focus:ring-slate-100 outline-none transition-all text-sm font-medium text-slate-900"
+                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-slate-400 focus:ring-4 focus:ring-slate-100 outline-none transition-all text-sm font-medium text-slate-800"
                                         placeholder="••••••••"
                                     />
                                 </div>
@@ -171,7 +171,7 @@ const Register = () => {
                                     type="button"
                                     onClick={() => setRole('TRAVELLER')}
                                     className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all group ${role === 'TRAVELLER'
-                                        ? 'bg-blue-50 border-blue-500 text-blue-600'
+                                        ? 'bg-emerald-50 border-emerald-500 text-emerald-600'
                                         : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'
                                         }`}
                                 >
@@ -209,7 +209,7 @@ const Register = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`w-full py-4 rounded-2xl font-bold text-sm text-white transition-all shadow-lg focus:ring-4 ${role === 'PASSENGER' ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-200 focus:ring-emerald-100' : 'bg-blue-600 hover:bg-blue-500 shadow-blue-200 focus:ring-blue-100'}`}
+                            className={`w-full py-4 rounded-2xl font-bold text-sm text-white transition-all shadow-lg focus:ring-4 bg-emerald-600 hover:bg-emerald-500 shadow-emerald-200 focus:ring-emerald-100`}
                         >
                             {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Create Account'}
                         </button>
@@ -234,7 +234,7 @@ const Register = () => {
                             Already have an account?{' '}
                             <button
                                 onClick={() => navigate('/login')}
-                                className="text-slate-900 font-bold hover:underline ml-1"
+                                className="text-emerald-600 font-bold hover:underline ml-1"
                             >
                                 Sign In
                             </button>

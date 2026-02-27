@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
 
 const sendRideAcceptedEmail = async (passengerEmail, passengerName, tripDetails) => {
     const mailOptions = {
-        from: `"RideShare Mission Control" <${process.env.EMAIL_USER}>`,
+        from: `"TrackMate Mission Control" <${process.env.EMAIL_USER}>`,
         to: passengerEmail,
         subject: 'MISSION CONFIRMED: Your Ride is Accepted! 🚀',
         html: `
@@ -33,7 +33,7 @@ const sendRideAcceptedEmail = async (passengerEmail, passengerName, tripDetails)
                     </p>
                 </div>
                 <div style="background: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
-                    &copy; 2026 RideShare Galactic. All units engaged.
+                    &copy; 2026 TrackMate Galactic. All units engaged.
                 </div>
             </div>
         `
@@ -49,7 +49,7 @@ const sendRideAcceptedEmail = async (passengerEmail, passengerName, tripDetails)
 
 const sendWelcomeEmail = async (userEmail, userName) => {
     const mailOptions = {
-        from: `"RideShare Mission Control" <${process.env.EMAIL_USER}>`,
+        from: `"TrackMate Mission Control" <${process.env.EMAIL_USER}>`,
         to: userEmail,
         subject: 'WELCOME TO THE FLEET: Account Activated! ⚡️',
         html: `
@@ -58,7 +58,7 @@ const sendWelcomeEmail = async (userEmail, userName) => {
                     <h1 style="color: white; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px;">Identity Verified</h1>
                 </div>
                 <div style="padding: 30px; background: white;">
-                    <p style="font-size: 16px; color: #475569;">Welcome to RideShare, <strong>${userName}</strong>,</p>
+                    <p style="font-size: 16px; color: #475569;">Welcome to TrackMate, <strong>${userName}</strong>,</p>
                     <p style="font-size: 16px; color: #475569; line-height: 1.6;">Your account has been successfully created and activated. You are now cleared for mission participation.</p>
                     
                     <div style="background: #f1f5f9; padding: 20px; border-radius: 16px; margin: 25px 0;">
@@ -71,7 +71,7 @@ const sendWelcomeEmail = async (userEmail, userName) => {
                     </p>
                 </div>
                 <div style="background: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
-                    &copy; 2026 RideShare Galactic. Secure Operations.
+                    &copy; 2026 TrackMate Galactic. Secure Operations.
                 </div>
             </div>
         `
@@ -86,7 +86,7 @@ const sendWelcomeEmail = async (userEmail, userName) => {
 
 const sendRideRequestEmail = async (driverEmail, driverName, passengerName, tripDetails) => {
     const mailOptions = {
-        from: `"RideShare Mission Control" <${process.env.EMAIL_USER}>`,
+        from: `"TrackMate Mission Control" <${process.env.EMAIL_USER}>`,
         to: driverEmail,
         subject: 'ACTION REQUIRED: New Join Request for Your Mission! 📡',
         html: `
@@ -109,7 +109,7 @@ const sendRideRequestEmail = async (driverEmail, driverName, passengerName, trip
                     </p>
                 </div>
                 <div style="background: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
-                    &copy; 2026 RideShare Galactic. Fleet Management.
+                    &copy; 2026 TrackMate Galactic. Fleet Management.
                 </div>
             </div>
         `

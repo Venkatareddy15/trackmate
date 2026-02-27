@@ -207,7 +207,7 @@ const searchLocations = async (query, lat, lon) => {
         const { data } = await axios.get(url, {
             timeout: 5000,
             headers: {
-                'User-Agent': 'RideSharingApp/1.0 (contact@rideshare.com)',
+                'User-Agent': 'TrackMate/1.0 (contact@trackmate.com)',
                 'Accept-Language': 'en-US,en;q=0.5'
             }
         });

@@ -108,7 +108,18 @@ router.post('/google', async (req, res) => {
 
             const { sendWelcomeEmail } = require('../utils/emailService');
             sendWelcomeEmail(email, name);
+        } else {
+            // Existing user - Update googleId if missing
+            if (!user.googleId) {
+                user.googleId = googleId;
+                await user.save();
+            }
 
+            // 🛠️ Auto-add role if it's not present (Fix for Sign up with Google for existing users)
+            if (role && !user.role.includes(role)) {
+                user.role.push(role);
+                await user.save();
+            }
         }
 
         // 🛡️ Admin Protection & Auto-Assignment for Authorized User
@@ -117,13 +128,6 @@ router.post('/google', async (req, res) => {
                 user.role.push('ADMIN');
                 await user.save();
             }
-        }
-
-        // Each user can log in with any role they have in their 'role' array
-        if (role && !user.role.includes(role)) {
-            return res.status(403).json({
-                message: `This account is not authorized for the ${role} role.`
-            });
         }
 
         res.json({
@@ -175,7 +179,7 @@ router.post('/login', async (req, res) => {
             if (!user) {
                 console.log('Creating new admin user record');
                 user = await User.create({
-                    name: 'System Admin',
+                    name: 'TrackMate Admin',
                     email: email.toLowerCase(),
                     password: password, // Will be hashed by model
                     role: ['ADMIN'],

@@ -1,6 +1,6 @@
-# 🚗 RideVerse: Nexus Mobility Platform
+# 🚗 TrackMate: Premium Mobility Platform
 
-A premium, full-stack ride-sharing application built with the MERN stack (MongoDB, Express, React, Node.js). Featuring real-time route optimization, secure payments, and a futuristic UI/UX.
+A premium, full-stack mobility application built with the MERN stack (MongoDB, Express, React, Node.js). Featuring real-time route optimization, secure payments, and a futuristic UI/UX.
 
 ## ✨ Features
 
@@ -29,7 +29,7 @@ Ensure you have the following environment variables in your `.env` files:
 ### 2. Installation
 ```bash
 # Clone the repository
-git clone https://github.com/ZET-Technologies-Private-Limited/ride-sharing.git
+git clone https://github.com/ZET-Technologies-Private-Limited/TrackMate.git
 
 # Install Backend dependencies
 cd backend && npm install

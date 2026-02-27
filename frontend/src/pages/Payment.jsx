@@ -8,10 +8,12 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import API from '../api';
 import BookingSummaryMap from '../components/BookingSummaryMap';
+import useAuthStore from '../store/useAuthStore';
 
 const Payment = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { user } = useAuthStore();
     const { trip, bookingDetails } = location.state || {};
 
     const [loading, setLoading] = useState(false);
@@ -92,11 +94,14 @@ const Payment = () => {
                         <p className="text-slate-600 font-medium">Your authorization was successful. The driver has been notified.</p>
                     </div>
                     <button
-                        onClick={() => navigate('/dashboard/passenger')}
+                        onClick={() => navigate(user?.role === 'TRAVELLER' ? '/dashboard/traveller' : '/dashboard/passenger')}
                         className="w-full py-5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl transition-all shadow-xl shadow-emerald-500/20 uppercase tracking-widest text-xs"
                     >
                         Return to Command Center
                     </button>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest animate-pulse">
+                        Mission synchronization complete
+                    </p>
                 </motion.div>
             </div>
         );
@@ -135,7 +140,7 @@ const Payment = () => {
                                 { id: 'card', name: 'Credit/Debit Card', icon: CreditCard, color: 'text-blue-600', bg: 'bg-blue-500/10' },
                                 { id: 'upi', name: 'UPI Apps', icon: Smartphone, color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
                                 { id: 'apple', name: 'Apple Pay', icon: Apple, color: 'text-slate-900', bg: 'bg-slate-200' },
-                                { id: 'wallet', name: 'Ride Credits', icon: Wallet, color: 'text-purple-600', bg: 'bg-purple-500/10' },
+                                { id: 'wallet', name: 'Track Credits', icon: Wallet, color: 'text-purple-600', bg: 'bg-purple-500/10' },
                             ].map((method) => (
                                 <button
                                     key={method.id}

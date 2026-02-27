@@ -45,6 +45,13 @@ const PassengerDashboard = () => {
     const dropInputRef = useRef(null);
     const [pickupDropRect, setPickupDropRect] = useState(null);
     const [dropDropRect, setDropDropRect] = useState(null);
+    const [now, setNow] = useState(new Date());
+
+    // Update 'now' every minute to auto-expire trips dynamically
+    useEffect(() => {
+        const interval = setInterval(() => setNow(new Date()), 60000);
+        return () => clearInterval(interval);
+    }, []);
 
     // Recompute position on scroll/resize so dropdown follows the input
     const updateRects = useCallback(() => {
@@ -110,10 +117,11 @@ const PassengerDashboard = () => {
         try {
             const { data } = await API.get('/bookings/my-bookings');
 
-            // Active: ACCEPTED or PENDING, and not completed/cancelled
+            // Active: ACCEPTED or PENDING, not completed/cancelled, and not expired
             const active = data.filter(b =>
                 !['COMPLETED', 'CANCELLED'].includes(b.tripId.status) &&
-                !['COMPLETED', 'CANCELLED'].includes(b.status)
+                !['COMPLETED', 'CANCELLED'].includes(b.status) &&
+                new Date(b.tripId.departureTime) > new Date(Date.now() - 1000 * 60 * 60) // 1 hour buffer
             ).sort((a, b) => new Date(a.tripId.departureTime) - new Date(b.tripId.departureTime));
 
             // History: COMPLETED or status is COMPLETED
@@ -251,10 +259,10 @@ const PassengerDashboard = () => {
                     <div className="space-y-4">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100">
                             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Mobility Sync</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">TrackMate Sync</span>
                         </div>
                         <h1 className="text-5xl md:text-6xl font-[800] text-slate-900 tracking-tight leading-[0.9]">
-                            Journey <span className="text-emerald-500">Explorer</span>
+                            Journey Explorer
                         </h1>
                         <p className="text-slate-400 font-semibold text-lg italic max-w-md mt-4">Personalized mobility for your shared network.</p>
                     </div>
@@ -485,8 +493,8 @@ const PassengerDashboard = () => {
 
                         <div className="space-y-4">
                             <AnimatePresence mode="popLayout">
-                                {searchResults.length > 0 ? (
-                                    searchResults.map((trip, idx) => (
+                                {searchResults.filter(t => new Date(t.departureTime) > now).length > 0 ? (
+                                    searchResults.filter(t => new Date(t.departureTime) > now).map((trip, idx) => (
                                         <motion.div
                                             key={trip._id}
                                             layout

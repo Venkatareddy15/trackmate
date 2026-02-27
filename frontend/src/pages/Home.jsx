@@ -57,7 +57,7 @@ const Home = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white text-slate-900 selection:bg-emerald-500/30 overflow-x-hidden">
+        <div className="min-h-screen bg-white text-slate-800 selection:bg-emerald-500/30 overflow-x-hidden">
             {/* Animated Background Elements */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
                 <motion.div
@@ -66,7 +66,7 @@ const Home = () => {
                 />
                 <motion.div
                     style={{ y: y2 }}
-                    className="absolute top-[40%] -right-[5%] w-[30%] h-[30%] bg-blue-500/10 rounded-full blur-[100px]"
+                    className="absolute top-[40%] -right-[5%] w-[30%] h-[30%] bg-emerald-500/5 rounded-full blur-[100px]"
                 />
             </div>
 
@@ -89,11 +89,11 @@ const Home = () => {
 
                         <motion.h1
                             variants={itemVariants}
-                            className="text-6xl md:text-8xl xl:text-[9rem] font-black leading-[0.85] tracking-tighter"
+                            className="text-6xl md:text-8xl xl:text-[9rem] font-extrabold leading-[0.85] tracking-tighter text-slate-800"
                         >
-                            Ride <br />
-                            <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-600 inline-block py-2">
-                                Sharing.
+                            Track <br />
+                            <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-600 inline-block py-2">
+                                Mate.
                             </span>
                         </motion.h1>
 
@@ -140,12 +140,12 @@ const Home = () => {
                             <div className="w-px h-8 bg-white/10 shrink-0" />
                             <div className="flex items-center gap-8 flex-1">
                                 <div>
-                                    <p className="text-2xl font-black">240+</p>
+                                    <p className="text-2xl font-bold">240+</p>
                                     <p className="text-[9px] uppercase tracking-wider text-slate-400">Available Travellers</p>
                                 </div>
                                 <div className="w-px h-8 bg-white/10" />
                                 <div>
-                                    <p className="text-2xl font-black">1.2k</p>
+                                    <p className="text-2xl font-bold">1.2k</p>
                                     <p className="text-[9px] uppercase tracking-wider text-slate-400">Daily Trips</p>
                                 </div>
                             </div>
@@ -163,7 +163,7 @@ const Home = () => {
                         viewport={{ once: true }}
                         className="text-center space-y-6 mb-24"
                     >
-                        <h2 className="text-5xl md:text-6xl font-black tracking-tighter text-slate-900">Why Choose Our Platform?</h2>
+                        <h2 className="text-5xl md:text-6xl font-extrabold tracking-tighter text-slate-800">Why Choose Our Platform?</h2>
                         <p className="text-slate-600 text-xl max-w-2xl mx-auto">We've combined modern transportation needs with environmental responsibility.</p>
                     </motion.div>
 
@@ -186,7 +186,7 @@ const Home = () => {
                                 >
                                     {f.icon}
                                 </motion.div>
-                                <h3 className="text-2xl font-black mb-4 relative z-10 text-slate-900">{f.title}</h3>
+                                <h3 className="text-2xl font-bold mb-4 relative z-10 text-slate-800">{f.title}</h3>
                                 <p className="text-slate-600 leading-relaxed text-lg relative z-10">
                                     {f.desc}
                                 </p>
@@ -207,7 +207,7 @@ const Home = () => {
                     <motion.h2
                         initial={{ y: 20, opacity: 0 }}
                         whileInView={{ y: 0, opacity: 1 }}
-                        className="text-6xl md:text-8xl font-black tracking-tight"
+                        className="text-6xl md:text-8xl font-extrabold tracking-tight text-slate-800"
                     >
                         Ready to ride <br />
                         <span className="text-emerald-500">the future?</span>
@@ -221,7 +221,7 @@ const Home = () => {
                     >
                         <button
                             onClick={() => navigate('/register')}
-                            className="bg-slate-900 text-white px-16 py-6 rounded-3xl font-black text-lg uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-2xl shadow-emerald-500/20"
+                            className="bg-slate-800 text-white px-16 py-6 rounded-3xl font-bold text-lg uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-2xl shadow-emerald-500/20"
                         >
                             Create Free Account
                         </button>
@@ -260,8 +260,8 @@ const Home = () => {
                             </div>
                         </motion.div>
 
-                        <p className="text-white/70 text-xs font-black uppercase tracking-[0.3em] mb-3">Get in Touch</p>
-                        <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-3">Contact Us on WhatsApp</h2>
+                        <p className="text-white/70 text-xs font-bold uppercase tracking-[0.3em] mb-3">Get in Touch</p>
+                        <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-3">Contact Us on WhatsApp</h2>
                         <p className="text-white/80 text-lg mb-2">Have questions? We're just a message away.</p>
                         <p className="text-white/60 text-sm font-bold tracking-widest mb-10">+91 94917 41210</p>
 
@@ -271,7 +271,7 @@ const Home = () => {
                             rel="noopener noreferrer"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.97 }}
-                            className="inline-flex items-center gap-3 bg-white text-[#075e54] px-12 py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-black/20 hover:bg-white/90 transition-all"
+                            className="inline-flex items-center gap-3 bg-white text-[#075e54] px-12 py-5 rounded-2xl font-bold text-sm uppercase tracking-widest shadow-xl shadow-black/20 hover:bg-white/90 transition-all"
                         >
                             <svg viewBox="0 0 32 32" className="w-5 h-5 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.668 4.61 1.832 6.51L4 29l7.697-1.817A11.94 11.94 0 0016 27c6.627 0 12-5.373 12-12S22.627 3 16 3z" fill="#25D366" />
@@ -293,10 +293,10 @@ const Home = () => {
                         <div className="w-12 h-12 rounded-xl overflow-hidden shadow-lg border border-slate-200">
                             <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
                         </div>
-                        <span className="font-black text-2xl tracking-tighter uppercase italic text-slate-900">Ride Sharing</span>
+                        <span className="font-extrabold text-2xl tracking-tighter uppercase italic text-slate-800">TrackMate</span>
                     </motion.div>
 
-                    <p className="text-slate-500 font-medium">© 2026 Eco-Mobility. Redefining shared journeys.</p>
+                    <p className="text-slate-500 font-medium">© 2026 TrackMate. Redefining shared journeys.</p>
 
                     <div className="flex gap-8">
                         {[Smartphone, Globe, Share2].map((Icon, i) => (

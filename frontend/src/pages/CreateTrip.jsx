@@ -204,11 +204,11 @@ const CreateTrip = () => {
         setLoading(true);
         try {
             await API.post('/trips', formData);
-            alert('Ride Published Successfully!');
+            alert('Mission Published Successfully!');
             navigate('/dashboard/traveller');
         } catch (err) {
             console.error(err);
-            alert(err.response?.data?.message || 'Failed to publish ride');
+            alert(err.response?.data?.message || 'Failed to publish mission');
         } finally {
             setLoading(false);
         }
@@ -227,7 +227,7 @@ const CreateTrip = () => {
                     <div className="p-2 bg-emerald-500 rounded-xl">
                         <MapPin className="w-6 h-6 text-white" />
                     </div>
-                    Publish a Ride
+                    Publish a Mission
                 </h2>
 
                 <form onSubmit={handleSubmit} className="space-y-6 relative z-10">

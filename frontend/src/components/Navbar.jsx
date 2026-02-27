@@ -28,21 +28,21 @@ const Navbar = () => {
                         <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
                     </motion.div>
                     <div className="flex flex-col">
-                        <span className="text-2xl font-[900] tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-600">
-                            RIDE<span className="text-emerald-500">VERSE</span>
+                        <span className="text-2xl font-extrabold tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-slate-800 via-slate-700 to-emerald-600">
+                            TRACK<span className="text-emerald-500">MATE</span>
                         </span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 -mt-1">Nexus Platform</span>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400 -mt-1">TrackMate Tracking</span>
                     </div>
                 </Link>
 
                 {/* Desktop Menu */}
                 <div className="hidden md:flex items-center gap-10">
-                    <Link to="/" className="text-slate-400 hover:text-slate-900 transition-all text-[11px] font-black uppercase tracking-[0.2em]">Home</Link>
+                    <Link to="/" className="text-slate-500 hover:text-slate-800 transition-all text-[11px] font-bold uppercase tracking-[0.2em]">Home</Link>
 
                     {user && (
                         <Link
                             to={dashboardLink}
-                            className="flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-all text-[11px] font-black uppercase tracking-[0.2em]"
+                            className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-all text-[11px] font-bold uppercase tracking-[0.2em]"
                         >
                             <LayoutDashboard className="w-4 h-4 text-emerald-500" />
                             Dashboard
@@ -53,8 +53,8 @@ const Navbar = () => {
                         <div className="flex items-center gap-8 pl-8 border-l border-slate-200/50">
                             <div className="flex items-center gap-4">
                                 <div className="text-right">
-                                    <p className="text-[9px] uppercase font-black tracking-[0.2em] text-slate-300">Operational Profile</p>
-                                    <p className="text-sm font-extrabold text-slate-900">{user.name}</p>
+                                    <p className="text-[9px] uppercase font-bold tracking-[0.2em] text-slate-400">Operational Profile</p>
+                                    <p className="text-sm font-bold text-slate-800">{user.name}</p>
                                 </div>
                                 <motion.button
                                     whileHover={{ scale: 1.05, rotate: 5 }}
@@ -74,10 +74,10 @@ const Navbar = () => {
                         </div>
                     ) : (
                         <div className="flex items-center gap-6">
-                            <Link to="/login" className="text-slate-400 hover:text-slate-900 font-black text-[11px] uppercase tracking-[0.2em] transition-all">Sign In</Link>
+                            <Link to="/login" className="text-slate-500 hover:text-slate-800 font-bold text-[11px] uppercase tracking-[0.2em] transition-all">Sign In</Link>
                             <Link
                                 to="/register"
-                                className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all hover:shadow-2xl hover:shadow-emerald-500/30 active:scale-95"
+                                className="bg-slate-800 text-white px-8 py-4 rounded-2xl font-bold text-[11px] uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all hover:shadow-2xl hover:shadow-emerald-500/30 active:scale-95"
                             >
                                 Sign Up
                             </Link>

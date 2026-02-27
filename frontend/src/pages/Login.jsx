@@ -52,13 +52,7 @@ const Login = () => {
         }
     };
 
-    const getRoleColor = () => {
-        if (role === 'PASSENGER') return 'emerald';
-        if (role === 'TRAVELLER') return 'blue';
-        return 'purple';
-    };
-
-    const roleColor = getRoleColor();
+    const roleColor = 'emerald';
 
     return (
         <div className="min-h-screen relative flex items-center justify-center px-4 py-24 bg-[#FAFAFA]">
@@ -76,7 +70,7 @@ const Login = () => {
                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-colors duration-500 bg-${roleColor}-50 text-${roleColor}-600`}>
                             {role === 'PASSENGER' ? <User className="w-8 h-8" /> : role === 'TRAVELLER' ? <Navigation className="w-8 h-8" /> : <ShieldCheck className="w-8 h-8" />}
                         </div>
-                        <h2 className="text-3xl font-bold text-slate-900 mb-2">Welcome Back</h2>
+                        <h2 className="text-3xl font-bold text-slate-800 mb-2">Welcome Back</h2>
                         <p className="text-slate-500 text-sm font-medium">Please enter your details to sign in.</p>
                     </div>
 
@@ -87,8 +81,8 @@ const Login = () => {
                                 key={r}
                                 onClick={() => setRole(r)}
                                 className={`flex-1 py-3 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all ${role === r
-                                    ? `bg-white text-slate-900 shadow-sm`
-                                    : 'text-slate-500 hover:text-slate-700'}`}
+                                    ? `bg-white text-slate-800 shadow-sm`
+                                    : 'text-slate-400 hover:text-slate-600'}`}
                             >
                                 {r}
                             </button>
@@ -142,7 +136,7 @@ const Login = () => {
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-slate-400 focus:ring-4 focus:ring-slate-100 outline-none transition-all text-sm font-medium text-slate-900"
+                                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-slate-400 focus:ring-4 focus:ring-slate-100 outline-none transition-all text-sm font-medium text-slate-800"
                                     placeholder="••••••••"
                                 />
                             </div>
@@ -151,7 +145,7 @@ const Login = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`w-full py-4 rounded-2xl font-bold text-sm text-white transition-all shadow-lg focus:ring-4 ${role === 'PASSENGER' ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-200 focus:ring-emerald-100' : role === 'TRAVELLER' ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-200 focus:ring-blue-100' : 'bg-slate-900 hover:bg-slate-800 shadow-slate-200 focus:ring-slate-100'}`}
+                            className={`w-full py-4 rounded-2xl font-bold text-sm text-white transition-all shadow-lg focus:ring-4 bg-emerald-600 hover:bg-emerald-500 shadow-emerald-200 focus:ring-emerald-100`}
                         >
                             {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Sign In'}
                         </button>
@@ -177,7 +171,7 @@ const Login = () => {
                                 Don't have an account?{' '}
                                 <button
                                     onClick={() => navigate('/register')}
-                                    className="text-slate-900 font-bold hover:underline ml-1"
+                                    className="text-emerald-600 font-bold hover:underline ml-1"
                                 >
                                     Sign Up
                                 </button>
@@ -186,7 +180,7 @@ const Login = () => {
                             {role !== 'ADMIN' ? (
                                 <button
                                     onClick={() => navigate('/admin/login')}
-                                    className="text-[10px] uppercase font-black tracking-widest text-slate-300 hover:text-slate-900 transition-colors"
+                                    className="text-[10px] uppercase font-bold tracking-widest text-slate-400 hover:text-slate-600 transition-colors"
                                 >
                                     Admin Dashboard Access
                                 </button>

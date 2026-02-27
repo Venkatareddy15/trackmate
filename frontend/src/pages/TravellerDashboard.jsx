@@ -25,6 +25,13 @@ const TravellerDashboard = () => {
     const [pendingRequests, setPendingRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState('grid'); // 'grid', 'list', 'map'
+    const [now, setNow] = useState(new Date());
+
+    // Update 'now' every minute
+    useEffect(() => {
+        const interval = setInterval(() => setNow(new Date()), 60000);
+        return () => clearInterval(interval);
+    }, []);
 
     const fetchData = async () => {
         try {
@@ -111,10 +118,10 @@ const TravellerDashboard = () => {
                     <div className="space-y-4">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 mb-2">
                             <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">Ops Command</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">TrackMate Control</span>
                         </div>
                         <h1 className="text-5xl md:text-6xl font-[800] text-slate-900 tracking-tight leading-[0.9]">
-                            Traveller <span className="text-blue-500">Terminal</span>
+                            Traveller Terminal
                         </h1>
                         <p className="text-slate-400 font-semibold text-lg max-w-lg mt-4 leading-relaxed">Precision coordination and resource management for your active network.</p>
                     </div>
@@ -197,7 +204,18 @@ const TravellerDashboard = () => {
                                                 </div>
                                             </div>
                                             <div>
-                                                <h4 className="text-lg font-[900] text-slate-900 tracking-tight uppercase">{req.passengerId.name}</h4>
+                                                <div className="flex items-center gap-2">
+                                                    <h4 className="text-lg font-[900] text-slate-900 tracking-tight uppercase">{req.passengerId.name}</h4>
+                                                    {req.paymentStatus === 'PAID' ? (
+                                                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-600 text-[8px] font-black uppercase tracking-widest rounded-md border border-emerald-200 shadow-sm shadow-emerald-500/10">
+                                                            PAID
+                                                        </span>
+                                                    ) : (
+                                                        <span className="px-2 py-0.5 bg-slate-100 text-slate-500 text-[8px] font-black uppercase tracking-widest rounded-md border border-slate-200">
+                                                            POD
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <p className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-400 mt-0.5 mt-1">
                                                     Requesting {req.seatsBooked} Slot(s)
                                                 </p>
@@ -302,7 +320,8 @@ const TravellerDashboard = () => {
                             ) : (
                                 <React.Fragment key="list-grid-view">
                                     {publishedTrips.filter(t =>
-                                        !['COMPLETED', 'CANCELLED'].includes(t.status)
+                                        !['COMPLETED', 'CANCELLED'].includes(t.status) &&
+                                        new Date(t.departureTime) > new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hour grace for active operations
                                     ).map((trip, idx) => (
                                         <motion.div
                                             key={trip._id}
@@ -385,7 +404,8 @@ const TravellerDashboard = () => {
                                     ))}
 
                                     {publishedTrips.filter(t =>
-                                        !['COMPLETED', 'CANCELLED'].includes(t.status)
+                                        !['COMPLETED', 'CANCELLED'].includes(t.status) &&
+                                        new Date(t.departureTime) > new Date(Date.now() - 2 * 60 * 60 * 1000)
                                     ).length === 0 && !loading && (
                                             <div className="lg:col-span-2 py-32 text-center bg-white rounded-[4rem] border border-dashed border-slate-200 shadow-xl shadow-slate-200/50">
                                                 <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
