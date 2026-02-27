@@ -22,15 +22,21 @@ const Register = () => {
 
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
+            console.log('Google Signup Success Triggered. Verifying token...');
+            if (!tokenResponse?.access_token) {
+                console.error('No Access Token received from Google during signup');
+                return;
+            }
             try {
                 const user = await googleLogin(tokenResponse.access_token, role, true);
                 if (user.role === 'TRAVELLER') navigate('/dashboard/traveller');
                 else navigate('/dashboard/passenger');
             } catch (err) {
-                console.error('Google Register Error:', err?.response?.data?.message || err.message);
+                const msg = err?.response?.data?.message || err.message;
+                console.error('Google Register Sync Error:', msg);
             }
         },
-        onError: () => { }
+        onError: (err) => console.error('Google Register Popup Error:', err)
     });
 
     const handleSubmit = async (e) => {

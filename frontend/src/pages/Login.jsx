@@ -19,16 +19,28 @@ const Login = () => {
 
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
+            console.log('Google Login Success Triggered. Verifying token...');
+            if (!tokenResponse?.access_token) {
+                console.error('No Access Token received from Google');
+                setError('Google login failed: No access token received.'); // Set error state
+                return;
+            }
             try {
                 const user = await googleLogin(tokenResponse.access_token, role, true);
                 if (user.role === 'ADMIN') navigate('/dashboard/admin');
                 else if (user.role === 'TRAVELLER') navigate('/dashboard/traveller');
                 else navigate('/dashboard/passenger');
             } catch (err) {
-                console.error('Google Login Error:', err?.response?.data?.message || err.message);
+                const msg = err?.response?.data?.message || err.message || 'An unexpected error occurred during Google login.';
+                console.error('Google Login Sync Error:', msg);
+                setError(`Google login failed: ${msg}`); // Set error state
             }
         },
-        onError: () => { }
+        onError: (err) => {
+            const msg = err?.error_description || err?.details || 'An unknown error occurred during Google login popup.';
+            console.error('Google Login Popup Error:', msg);
+            setError(`Google login failed: ${msg}`); // Set error state
+        }
     });
 
     const handleSubmit = async (e) => {

@@ -6,6 +6,8 @@ import './index.css'
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
+console.log('TrackMate Initializing with Client ID:', import.meta.env.VITE_GOOGLE_CLIENT_ID ? 'CONNECTED' : 'MISSING');
+
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
         <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
