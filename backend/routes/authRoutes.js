@@ -73,17 +73,29 @@ router.post('/google', async (req, res) => {
         const { token, role, isAccessToken } = req.body;
         let name, email, picture, googleId;
 
+        if (!token) {
+            return res.status(400).json({ message: 'Token is required' });
+        }
+
         if (isAccessToken) {
             // Handle Access Token from custom button
+            console.log('Verifying Google Access Token...');
             const response = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`);
             ({ name, email, picture, sub: googleId } = response.data);
         } else {
             // Handle ID Token from standard GoogleLogin component
+            console.log('Verifying Google ID Token...');
+            const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
             const ticket = await client.verifyIdToken({
                 idToken: token,
                 audience: process.env.GOOGLE_CLIENT_ID,
             });
             ({ name, email, picture, sub: googleId } = ticket.getPayload());
+        }
+
+        if (!email) {
+            console.error('GOOGLE_AUTH_ERROR: No email found in Google payload');
+            return res.status(400).json({ message: 'Google account must have an email associated.' });
         }
 
         // 🛡️ Admin Protection: Block public ADMIN registration/login via Google (except for authorized admin)
@@ -146,8 +158,12 @@ router.post('/google', async (req, res) => {
             token: generateToken(user._id)
         });
     } catch (error) {
-        console.error('GOOGLE_AUTH_ERROR:', error);
-        res.status(500).json({ message: 'Google authentication failed' });
+        console.error('GOOGLE_AUTH_ERROR:', error.response?.data || error.message);
+        res.status(500).json({
+            message: 'Google authentication failed',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+            error: error.message // Temporarily include error message for production debugging
+        });
     }
 });
 
