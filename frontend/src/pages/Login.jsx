@@ -14,7 +14,7 @@ const Login = () => {
     const [role, setRole] = useState('PASSENGER');
     const [isTyping, setIsTyping] = useState(false);
 
-    const { login, googleLogin, error, loading } = useAuthStore();
+    const { login, googleLogin, error, loading, setError } = useAuthStore();
     const navigate = useNavigate();
 
     const handleGoogleLogin = useGoogleLogin({

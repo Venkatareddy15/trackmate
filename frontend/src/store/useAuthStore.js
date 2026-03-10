@@ -70,6 +70,10 @@ const useAuthStore = create(
 
             setUser: (userData) => {
                 set({ user: userData });
+            },
+
+            setError: (msg) => {
+                set({ error: msg });
             }
         }),
         {
