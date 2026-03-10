@@ -46,12 +46,6 @@ app.use((req, res, next) => {
     next();
 });
 
-// Explicitly handle socket.io polling requests for Vercel
-// Use regex for Express 5 compatibility (wildcards like '*' now require a parameter name)
-app.all(/\/socket\.io.*/, (req, res) => {
-    io.engine.handleRequest(req, res);
-});
-
 // Socket.IO
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
@@ -143,13 +137,11 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
-    connectDB().then(() => {
-        server.listen(PORT, '0.0.0.0', () => {
-            console.log(`Server running on port ${PORT}`);
-        });
+connectDB().then(() => {
+    server.listen(PORT, '0.0.0.0', () => {
+        console.log(`Server running on port ${PORT}`);
     });
-}
+});
 
 // Export the server instead of just the app for better socket compatibility
 module.exports = server;
