@@ -22,6 +22,7 @@ const Payment = () => {
     const [upiId, setUpiId] = useState('');
     const [upiApp, setUpiApp] = useState('');
     const [upiError, setUpiError] = useState('');
+    const [transactionId, setTransactionId] = useState('');
 
     const validateUpi = (id) => {
         const regex = /^[\w.-]+@[\w.-]+$/;
@@ -57,7 +58,8 @@ const Payment = () => {
                 // Settle existing booking
                 await API.patch(`/bookings/${bookingDetails._id}/payment`, {
                     paymentStatus: 'PAID',
-                    paymentMethod: 'ONLINE'
+                    paymentMethod: 'ONLINE',
+                    transactionId
                 });
             } else {
                 // Create new booking request
@@ -65,7 +67,8 @@ const Payment = () => {
                     tripId: trip._id,
                     ...bookingDetails,
                     paymentMethod: 'ONLINE',
-                    paymentStatus: 'PAID'
+                    paymentStatus: 'PAID',
+                    transactionId
                 });
             }
 
@@ -268,6 +271,17 @@ const Payment = () => {
                                         </div>
                                         {upiError && <p className="text-red-500 text-xs font-bold ml-1">{upiError}</p>}
                                         <p className="text-xs text-slate-400 ml-1">Secure verified payment via NPCI gateway.</p>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase font-black tracking-widest text-slate-500 ml-1">Transaction ID</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Enter Transaction ID"
+                                            value={transactionId}
+                                            onChange={(e) => setTransactionId(e.target.value)}
+                                            className="w-full bg-white border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-blue-500 transition-all text-slate-900"
+                                        />
                                     </div>
                                 </motion.div>
                             )}

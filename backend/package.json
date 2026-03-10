@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "(lsof -ti:5001 | xargs kill -9 || true) && node server.js",
-    "dev": "(lsof -ti:5001 | xargs kill -9 || true) && nodemon server.js",
+    "start": "kill-port 5001 && node server.js",
+    "dev": "kill-port 5001 && nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -31,6 +31,7 @@
     "stripe": "^20.3.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "kill-port": "^1.6.1"
   }
 }

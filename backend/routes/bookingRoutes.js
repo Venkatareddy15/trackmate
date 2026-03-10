@@ -44,7 +44,7 @@ router.get('/requests', protect, legacyHandler);
 // Request to join a trip
 router.post('/request', protect, async (req, res) => {
     try {
-        const { tripId, pickupPoint, dropPoint, seatsBooked, fare, paymentMethod, paymentStatus } = req.body;
+        const { tripId, pickupPoint, dropPoint, seatsBooked, fare, paymentMethod, paymentStatus, transactionId } = req.body;
 
         const trip = await Trip.findById(tripId);
         if (!trip) return res.status(404).json({ message: 'Trip not found' });
@@ -59,6 +59,7 @@ router.post('/request', protect, async (req, res) => {
             fare,
             paymentMethod: paymentMethod || 'ONLINE',
             paymentStatus: paymentStatus || 'PENDING',
+            transactionId,
             status: 'PENDING'
         });
 
@@ -179,14 +180,29 @@ router.get('/trip/:tripId', protect, async (req, res) => {
 // Update payment status (Driver collects cash or confirms payment)
 router.patch('/:id/payment', protect, async (req, res) => {
     try {
-        const { paymentStatus, paymentMethod } = req.body;
+        const { paymentStatus, paymentMethod, transactionId } = req.body;
         const booking = await Booking.findById(req.params.id);
 
         if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
         if (paymentStatus) booking.paymentStatus = paymentStatus;
         if (paymentMethod) booking.paymentMethod = paymentMethod;
+        if (transactionId) booking.transactionId = transactionId;
         await booking.save();
+
+        // Notify traveler of payment
+        const trip = await Trip.findById(booking.tripId);
+        const notificationData = {
+            userId: trip.driverId,
+            type: 'payment',
+            title: 'Payment Received',
+            body: `A payment of ₹${booking.fare} has been made for your trip to ${trip.endPoint.address}`,
+            refId: booking._id,
+            refType: 'BOOKING',
+            time: 'Just now'
+        };
+        await Notification.create(notificationData);
+        req.io.to(trip.driverId.toString()).emit('newNotification', notificationData);
 
         res.json(booking);
     } catch (error) {
