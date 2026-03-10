@@ -10,4 +10,4 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  VITE_API_URL = "https://trackmate-backend.vercel.app/api"
+  VITE_API_URL = "https://your-new-backend-url.com/api"

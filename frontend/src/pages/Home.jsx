@@ -323,7 +323,7 @@ const Home = () => {
                     <div className="flex gap-8">
                         {[
                             { icon: Smartphone, label: 'Download App', action: () => alert('Mobile app coming soon!') },
-                            { icon: Globe, label: 'Official Website', action: () => window.open('https://trackmate.vercel.app', '_blank') },
+                            { icon: Globe, label: 'Official Website', action: () => window.open('https://trackmate-rs.netlify.app', '_blank') },
                             { icon: Share2, label: 'Share Platform', action: handleShare }
                         ].map((item, i) => (
                             <motion.button

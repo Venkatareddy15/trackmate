@@ -39,7 +39,11 @@ const Login = () => {
         onError: (err) => {
             const msg = err?.error_description || err?.details || 'An unknown error occurred during Google login popup.';
             console.error('Google Login Popup Error:', msg);
-            setError(`Google login failed: ${msg}`); // Set error state
+            if (msg.includes('redirect_uri_mismatch')) {
+                setError('Google OAuth Error: Please add https://trackmate-rs.netlify.app to your Google Cloud Console Authorized URIs.');
+            } else {
+                setError(`Google login failed: ${msg}`);
+            }
         }
     });
 

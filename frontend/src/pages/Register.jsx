@@ -36,7 +36,13 @@ const Register = () => {
                 console.error('Google Register Sync Error:', msg);
             }
         },
-        onError: (err) => console.error('Google Register Popup Error:', err)
+        onError: (err) => {
+            const msg = err?.error_description || err?.details || 'An unknown error occurred during Google signup.';
+            console.error('Google Register Popup Error:', err);
+            if (msg && msg.includes('redirect_uri_mismatch')) {
+                setError('Google OAuth Error: Please add https://trackmate-rs.netlify.app to your Google Cloud Console Authorized URIs.');
+            }
+        }
     });
 
     const handleSubmit = async (e) => {

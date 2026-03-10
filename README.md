@@ -21,31 +21,23 @@ A premium, full-stack mobility application built with the MERN stack (MongoDB, E
 ## 🚀 Quick Start
 
 ### 1. Prerequisite
-Ensure you have the following environment variables in your `.env` files:
+Ensure you have the following environment variables in your `.env` files or deployment dashboard:
 - `MONGO_URI`
 - `JWT_SECRET`
 - `GOOGLE_MAPS_API_KEY`
+- `VITE_GOOGLE_CLIENT_ID` (For Google Sign-In)
+- `VITE_API_URL` (Frontend needs this to point to the backend)
 
-### 2. Installation
-```bash
-# Clone the repository
-git clone https://github.com/ZET-Technologies-Private-Limited/TrackMate.git
+### 2. Deployment (Netlify)
+The project is optimized for Netlify deployment.
+- **Frontend**: Deployed at `https://trackmate-rs.netlify.app`
+- **Configuration**: Managed via `netlify.toml` in the root directory.
 
-# Install Backend dependencies
-cd backend && npm install
-
-# Install Frontend dependencies
-cd ../frontend && npm install
-```
-
-### 3. Execution (Development Mode)
-```bash
-# Run Backend (Auto-reloading with nodemon)
-cd backend && npm run dev
-
-# Run Frontend
-cd frontend && npm run dev
-```
+### 🔒 Fixing Google OAuth (Error 400: redirect_uri_mismatch)
+To prevent this error, you must register your live Netlify URL in the [Google Cloud Console](https://console.cloud.google.com/apis/credentials):
+1.  **Authorized JavaScript origins**: Add `https://trackmate-rs.netlify.app`
+2.  **Authorized redirect URIs**: Add `https://trackmate-rs.netlify.app`
+3.  **Wait**: It can take 5-10 minutes for Google to update.
 
 ## 🔒 Security
 - **JWT Protection**: Secure state-based authentication.
