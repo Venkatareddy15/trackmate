@@ -18,6 +18,28 @@ const Home = () => {
     const y2 = useTransform(scrollY, [0, 500], [0, -150]);
     const rotate = useTransform(scrollY, [0, 1000], [0, 45]);
 
+    const handleShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'TrackMate',
+                    text: 'Check out TrackMate - The smarter way to commute!',
+                    url: window.location.origin,
+                });
+            } catch (err) {
+                console.error('Error sharing:', err);
+            }
+        } else {
+            // Fallback: Copy to clipboard
+            try {
+                await navigator.clipboard.writeText(window.location.origin);
+                alert('Link copied to clipboard!');
+            } catch (err) {
+                console.error('Failed to copy:', err);
+            }
+        }
+    };
+
     const features = [
         {
             icon: <Leaf className="w-6 h-6 text-emerald-400" />,
@@ -299,15 +321,20 @@ const Home = () => {
                     <p className="text-slate-500 font-medium">© 2026 TrackMate. Redefining shared journeys.</p>
 
                     <div className="flex gap-8">
-                        {[Smartphone, Globe, Share2].map((Icon, i) => (
-                            <motion.a
+                        {[
+                            { icon: Smartphone, label: 'Download App', action: () => alert('Mobile app coming soon!') },
+                            { icon: Globe, label: 'Official Website', action: () => window.open('https://trackmate.vercel.app', '_blank') },
+                            { icon: Share2, label: 'Share Platform', action: handleShare }
+                        ].map((item, i) => (
+                            <motion.button
                                 key={i}
-                                href="#"
+                                onClick={item.action}
                                 whileHover={{ y: -5, color: "#10b981" }}
-                                className="text-slate-500 transition-colors"
+                                className="text-slate-500 transition-colors p-2 rounded-lg hover:bg-slate-100"
+                                title={item.label}
                             >
-                                <Icon className="w-6 h-6" />
-                            </motion.a>
+                                <item.icon className="w-6 h-6" />
+                            </motion.button>
                         ))}
                     </div>
                 </div>
