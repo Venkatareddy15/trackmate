@@ -24,8 +24,8 @@ jobs:
       - name: Build Frontend
         working-directory: frontend
         run: npm run build
-        env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+        # Removed hardcoded VITE_API_URL from secrets to use netlify.toml value or relative path
+
 
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v3.0
