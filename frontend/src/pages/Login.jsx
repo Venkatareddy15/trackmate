@@ -19,33 +19,50 @@ const Login = () => {
 
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
-            console.log('Google Login Success Triggered. Verifying token...');
+            console.log('[LOGIN] Google OAuth Success:', {
+                hasAccessToken: !!tokenResponse?.access_token,
+                tokenLength: tokenResponse?.access_token?.length
+            });
+            
             if (!tokenResponse?.access_token) {
-                console.error('No Access Token received from Google');
-                setError('Google login failed: No access token received.');
+                console.error('[LOGIN] No access token received from Google');
+                setError('Google login failed: No access token received');
                 return;
             }
+            
             try {
-                // Ensure we use the correct role from the state
+                console.log('[LOGIN] Sending token to backend...');
                 const user = await googleLogin(tokenResponse.access_token, role, true);
-                if (user.role === 'ADMIN') navigate('/dashboard/admin');
-                else if (user.role === 'TRAVELLER') navigate('/dashboard/traveller');
-                else navigate('/dashboard/passenger');
+                console.log('[LOGIN] Backend response received:', {
+                    userId: user._id,
+                    role: user.role,
+                    isNewUser: user.isNewUser
+                });
+                
+                // Redirect based on role
+                if (user.role === 'ADMIN') {
+                    navigate('/dashboard/admin');
+                } else if (user.role === 'TRAVELLER') {
+                    navigate('/dashboard/traveller');
+                } else {
+                    navigate('/dashboard/passenger');
+                }
             } catch (err) {
-                const msg = err?.response?.data?.message || err.message || 'An unexpected error occurred during Google login.';
-                console.error('Google Login Sync Error:', msg);
-                setError(`Google login failed: ${msg}`);
+                console.error('[LOGIN] Backend error:', {
+                    message: err?.message,
+                    response: err?.response?.data,
+                    status: err?.response?.status
+                });
+                const msg = err?.response?.data?.message || err?.message || 'Google login failed';
+                setError(msg);
             }
         },
         onError: (err) => {
-            const msg = err?.error_description || err?.details || 'An unknown error occurred during Google login popup.';
-            console.error('Google Login Popup Error:', msg);
-            if (msg.includes('redirect_uri_mismatch')) {
-                setError(`Google OAuth Error: Please ensure ${window.location.origin} is added to your Google Cloud Console Authorized URIs.`);
-            } else {
-                setError(`Google login failed: ${msg}`);
-            }
-        }
+            console.error('[LOGIN] Google OAuth popup error:', err);
+            const msg = err?.error_description || err?.details || 'Google login popup failed';
+            setError(msg);
+        },
+        flow: 'implicit'
     });
 
     const handleSubmit = async (e) => {

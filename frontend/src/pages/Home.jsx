@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import {
     Navigation, ArrowRight, ShieldCheck, Leaf,
@@ -6,12 +6,27 @@ import {
     Sparkles
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import useAuthStore from '../store/useAuthStore';
 
 import LiveFleetMap from '../components/LiveFleetMap';
 
 const Home = () => {
     const navigate = useNavigate();
+    const { user } = useAuthStore();
     const { scrollY } = useScroll();
+
+    // Auto-redirect logged-in users to their dashboard
+    useEffect(() => {
+        if (user) {
+            if (user.role === 'ADMIN') {
+                navigate('/dashboard/admin', { replace: true });
+            } else if (user.role === 'TRAVELLER' || user.roles?.includes('TRAVELLER')) {
+                navigate('/dashboard/traveller', { replace: true });
+            } else {
+                navigate('/dashboard/passenger', { replace: true });
+            }
+        }
+    }, [user, navigate]);
 
     // Parallax effects for background elements
     const y1 = useTransform(scrollY, [0, 500], [0, 200]);

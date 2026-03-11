@@ -37,14 +37,31 @@ const useAuthStore = create(
             },
 
             googleLogin: async (credential, role, isAccessToken = false) => {
-                // 🔑 Clear any previous user session before loading a new one
+                console.log('[AUTH_STORE] Google login initiated:', { role, isAccessToken });
                 set({ user: null, token: null, loading: true, error: null });
                 try {
-                    const { data } = await API.post('/auth/google', { token: credential, role, isAccessToken });
+                    console.log('[AUTH_STORE] Calling backend /auth/google...');
+                    const { data } = await API.post('/auth/google', { 
+                        token: credential, 
+                        role, 
+                        isAccessToken 
+                    });
+                    console.log('[AUTH_STORE] Backend response received:', {
+                        userId: data._id,
+                        email: data.email,
+                        role: data.role,
+                        isNewUser: data.isNewUser
+                    });
                     set({ user: data, token: data.token, loading: false, error: null });
                     return data;
                 } catch (error) {
-                    set({ user: null, token: null, error: error.response?.data?.message || 'Google Login failed', loading: false });
+                    console.error('[AUTH_STORE] Google login error:', {
+                        message: error.message,
+                        response: error.response?.data,
+                        status: error.response?.status
+                    });
+                    const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message || 'Google login failed';
+                    set({ user: null, token: null, error: errorMsg, loading: false });
                     throw error;
                 }
             },

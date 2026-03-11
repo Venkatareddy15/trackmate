@@ -66,118 +66,204 @@ router.post('/register', async (req, res) => {
 
 // Google Auth
 const { OAuth2Client } = require('google-auth-library');
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 router.post('/google', async (req, res) => {
     try {
         const { token, role, isAccessToken } = req.body;
         let name, email, picture, googleId;
 
+        // Validate token
         if (!token) {
+            console.error('[GOOGLE_AUTH] No token provided');
             return res.status(400).json({ message: 'Token is required' });
         }
 
+        console.log('[GOOGLE_AUTH] Request received:', { 
+            role, 
+            isAccessToken, 
+            tokenLength: token.length,
+            tokenPrefix: token.substring(0, 20) + '...'
+        });
+
+        // Verify token based on type
         if (isAccessToken) {
-            // Handle Access Token from custom button
-            console.log('Verifying Google Access Token via userinfo endpoint...');
+            // Handle Access Token from useGoogleLogin hook
+            console.log('[GOOGLE_AUTH] Verifying Access Token via Google userinfo API...');
             try {
-                const response = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`);
-                ({ name, email, picture, sub: googleId } = response.data);
-                console.log('Google verification successful for:', email);
+                const response = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    timeout: 10000
+                });
+                
+                name = response.data.name;
+                email = response.data.email;
+                picture = response.data.picture;
+                googleId = response.data.sub;
+                
+                console.log('[GOOGLE_AUTH] Access Token verified successfully:', { email, name });
             } catch (googleError) {
-                console.error('GOOGLE_USERINFO_ERROR:', googleError.response?.data || googleError.message);
+                console.error('[GOOGLE_AUTH] Access Token verification failed:', {
+                    status: googleError.response?.status,
+                    statusText: googleError.response?.statusText,
+                    data: googleError.response?.data,
+                    message: googleError.message
+                });
                 return res.status(401).json({
-                    message: 'Google Access Token verification failed',
+                    message: 'Invalid Google Access Token',
                     error: googleError.response?.data?.error_description || googleError.message
                 });
             }
         } else {
-            // Handle ID Token from standard GoogleLogin component
-            console.log('Verifying Google ID Token via Google library...');
+            // Handle ID Token from GoogleLogin component
+            console.log('[GOOGLE_AUTH] Verifying ID Token via google-auth-library...');
             try {
-                const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-                const ticket = await client.verifyIdToken({
+                const ticket = await googleClient.verifyIdToken({
                     idToken: token,
                     audience: process.env.GOOGLE_CLIENT_ID,
                 });
-                ({ name, email, picture, sub: googleId } = ticket.getPayload());
-                console.log('Google ID Token verification successful for:', email);
+                const payload = ticket.getPayload();
+                
+                name = payload.name;
+                email = payload.email;
+                picture = payload.picture;
+                googleId = payload.sub;
+                
+                console.log('[GOOGLE_AUTH] ID Token verified successfully:', { email, name });
             } catch (ticketError) {
-                console.error('GOOGLE_TICKET_ERROR:', ticketError.message);
+                console.error('[GOOGLE_AUTH] ID Token verification failed:', ticketError.message);
                 return res.status(401).json({
-                    message: 'Google ID Token verification failed',
+                    message: 'Invalid Google ID Token',
                     error: ticketError.message
                 });
             }
         }
 
+        // Validate email
         if (!email) {
-            console.error('GOOGLE_AUTH_ERROR: Email is missing in Google payload');
-            return res.status(400).json({ message: 'Google account must have an email associated.' });
+            console.error('[GOOGLE_AUTH] Email missing from Google response');
+            return res.status(400).json({ message: 'Google account must have an email' });
         }
 
-        // 🛡️ Admin Protection
+        // Admin protection
         const AUTHORIZED_ADMIN = process.env.ADMIN_EMAIL;
         if (role === 'ADMIN' && (!AUTHORIZED_ADMIN || email.toLowerCase() !== AUTHORIZED_ADMIN.toLowerCase())) {
-            return res.status(401).json({ message: 'Unauthorized: Admin accounts cannot be created publicly.' });
+            console.log('[GOOGLE_AUTH] Unauthorized admin attempt:', email);
+            return res.status(401).json({ message: 'Unauthorized: Admin accounts cannot be created publicly' });
         }
 
+        // Find or create user
         let user = await User.findOne({ email });
+        let isNewUser = false;
+        let activeRole = role || 'PASSENGER';
 
         if (!user) {
-            // ── New User from Google ────────────────
+            // New user registration
+            console.log('[GOOGLE_AUTH] Creating new user:', { email, role: activeRole });
+            
             user = await User.create({
                 name,
                 email,
-                password: Math.random().toString(36).slice(-8),
-                role: [role || 'PASSENGER'],
+                password: Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8),
+                role: [activeRole],
                 profileImage: picture,
                 googleId,
                 isVerified: true
             });
-            console.log('New user created via Google:', email);
+            
+            isNewUser = true;
+            console.log('[GOOGLE_AUTH] New user created successfully:', user._id);
 
-            const { sendWelcomeEmail } = require('../utils/emailService');
-            sendWelcomeEmail(email, name);
-        } else {
-            // Existing user - Update googleId if missing
-            if (!user.googleId) user.googleId = googleId;
-
-            // Auto-add role if missing
-            if (role && !user.role.includes(role)) {
-                user.role.push(role);
+            // Send welcome email
+            try {
+                const { sendWelcomeEmail } = require('../utils/emailService');
+                await sendWelcomeEmail(email, name);
+            } catch (emailError) {
+                console.error('[GOOGLE_AUTH] Welcome email failed:', emailError.message);
+                // Don't fail the registration if email fails
             }
+        } else {
+            // Existing user login
+            console.log('[GOOGLE_AUTH] Existing user found:', { email, currentRoles: user.role });
+            
+            // Update googleId if missing
+            if (!user.googleId) {
+                user.googleId = googleId;
+            }
+
+            // Update profile image if changed
+            if (picture && picture !== user.profileImage) {
+                user.profileImage = picture;
+            }
+
+            // Handle role assignment
+            if (role) {
+                if (user.role.includes(role)) {
+                    activeRole = role;
+                    console.log('[GOOGLE_AUTH] User already has role:', role);
+                } else {
+                    user.role.push(role);
+                    activeRole = role;
+                    console.log('[GOOGLE_AUTH] Added new role to user:', role);
+                }
+            } else {
+                activeRole = user.role[0];
+                console.log('[GOOGLE_AUTH] Using default role:', activeRole);
+            }
+            
             await user.save();
-            console.log('Existing user logged in via Google:', email);
         }
 
-        // 🛡️ Admin Auto-Assignment
+        // Admin auto-assignment
         if (AUTHORIZED_ADMIN && email.toLowerCase() === AUTHORIZED_ADMIN.toLowerCase()) {
             if (!user.role.includes('ADMIN')) {
                 user.role.push('ADMIN');
                 await user.save();
+                console.log('[GOOGLE_AUTH] Admin role auto-assigned');
             }
+            activeRole = 'ADMIN';
         }
 
-        res.json({
+        // Generate response
+        const response = {
             _id: user._id,
             name: user.name,
             email: user.email,
             phone: user.phone,
             upiId: user.upiId,
-            role: role || user.role[0],
+            role: activeRole,
             roles: user.role,
             profileImage: user.profileImage,
             verified: user.isVerified,
             trustScore: user.trustScore,
             ratingAvg: user.ratingAvg,
+            carbonSaved: user.carbonSaved,
+            rideCredits: user.rideCredits,
+            loyaltyPoints: user.loyaltyPoints,
+            level: user.level,
             createdAt: user.createdAt,
+            isNewUser,
             token: generateToken(user._id)
+        };
+
+        console.log('[GOOGLE_AUTH] Authentication successful:', { 
+            userId: user._id, 
+            email, 
+            activeRole, 
+            isNewUser 
         });
+
+        res.json(response);
     } catch (error) {
-        console.error('GLOBAL_GOOGLE_AUTH_ERROR:', error.message);
+        console.error('[GOOGLE_AUTH] Unexpected error:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
         res.status(500).json({
-            message: 'Global Google authentication failure',
+            message: 'Google authentication failed',
             error: error.message
         });
     }

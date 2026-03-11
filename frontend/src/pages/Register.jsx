@@ -22,32 +22,59 @@ const Register = () => {
 
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
-            console.log('Google Signup Success Triggered. Verifying token...');
+            console.log('[REGISTER] Google OAuth Success:', {
+                hasAccessToken: !!tokenResponse?.access_token,
+                tokenLength: tokenResponse?.access_token?.length,
+                selectedRole: role
+            });
+            
             if (!tokenResponse?.access_token) {
-                console.error('No Access Token received from Google during signup');
-                setError('Google signup failed: No access token received.');
+                console.error('[REGISTER] No access token received from Google');
+                setError('Google signup failed: No access token received');
                 return;
             }
+            
             try {
-                // Ensure we use the correct role from the state
+                console.log('[REGISTER] Sending token to backend with role:', role);
                 const user = await googleLogin(tokenResponse.access_token, role, true);
-                if (user.role === 'TRAVELLER') navigate('/dashboard/traveller');
-                else navigate('/dashboard/passenger');
+                console.log('[REGISTER] Backend response received:', {
+                    userId: user._id,
+                    role: user.role,
+                    isNewUser: user.isNewUser
+                });
+                
+                // Redirect based on role
+                if (user.isNewUser) {
+                    if (user.role === 'TRAVELLER') {
+                        navigate('/dashboard/traveller');
+                    } else {
+                        navigate('/dashboard/passenger');
+                    }
+                } else {
+                    if (user.role === 'ADMIN') {
+                        navigate('/dashboard/admin');
+                    } else if (user.role === 'TRAVELLER') {
+                        navigate('/dashboard/traveller');
+                    } else {
+                        navigate('/dashboard/passenger');
+                    }
+                }
             } catch (err) {
-                const msg = err?.response?.data?.message || err.message || 'An unexpected error occurred during Google signup.';
-                console.error('Google Register Sync Error:', msg);
-                setError(`Google signup failed: ${msg}`);
+                console.error('[REGISTER] Backend error:', {
+                    message: err?.message,
+                    response: err?.response?.data,
+                    status: err?.response?.status
+                });
+                const msg = err?.response?.data?.message || err?.message || 'Google signup failed';
+                setError(msg);
             }
         },
         onError: (err) => {
-            const msg = err?.error_description || err?.details || 'An unknown error occurred during Google signup popup.';
-            console.error('Google Register Popup Error:', msg);
-            if (msg.includes('redirect_uri_mismatch')) {
-                setError(`Google OAuth Error: Please ensure ${window.location.origin} is added to your Google Cloud Console Authorized URIs.`);
-            } else {
-                setError(`Google signup failed: ${msg}`);
-            }
-        }
+            console.error('[REGISTER] Google OAuth popup error:', err);
+            const msg = err?.error_description || err?.details || 'Google signup popup failed';
+            setError(msg);
+        },
+        flow: 'implicit'
     });
 
     const handleSubmit = async (e) => {
@@ -87,11 +114,6 @@ const Register = () => {
                     <div className="text-center mb-10">
                         <h2 className="text-3xl font-bold text-slate-800 mb-2">Create your account</h2>
                         <p className="text-slate-500 text-sm font-medium">Join our community and start your journey.</p>
-
-                        {/* Notice for multiple email fix */}
-                        <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-xl text-blue-700 text-[11px] font-semibold inline-flex items-center gap-2">
-                            <ShieldCheck className="w-3.5 h-3.5" /> Already have an account? Use the same email to add a new role.
-                        </div>
                     </div>
 
                     <AnimatePresence mode='wait'>
