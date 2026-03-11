@@ -18,4 +18,4 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  VITE_API_URL = "/api"
+  VITE_API_URL = "https://ride-sharing-mu.vercel.app/api"
