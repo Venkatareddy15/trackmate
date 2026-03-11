@@ -9,19 +9,26 @@ const Trip = require('./models/Trip');
 const Booking = require('./models/Booking');
 const Notification = require('./models/Notification');
 
+const path = require('path');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
         origin: "*",
         methods: ["GET", "POST"]
-    }
+    },
+    path: '/socket.io', // Ensure path matches frontend socket.js
+    addTrailingSlash: false // Better for Vercel/serverless
 });
+
+// Serve frontend static files from root deployment
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 // Middleware
 const allowedOrigins = [
     'https://trackmate-rs.netlify.app',
     'https://trackmate-frontend.vercel.app',
+    'https://trackmate-combined.vercel.app', // Anticipated combined URL
     'http://localhost:5173',
     'http://127.0.0.1:5173'
 ];

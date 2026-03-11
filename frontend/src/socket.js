@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client';
 
-const socket = io('https://trackmate-backend.vercel.app', {
+const socket = io('/', {
     path: '/socket.io',
     transports: ['websocket', 'polling'],
     withCredentials: true
