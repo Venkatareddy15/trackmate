@@ -68,6 +68,14 @@ app.use((req, res, next) => {
 });
 
 // Routes
+app.use('/auth', authRoutes);
+app.use('/trips', tripRoutes);
+app.use('/bookings', bookingRoutes);
+app.use('/notifications', notificationRoutes);
+app.use('/payments', paymentRoutes);
+app.use('/stats', statsRoutes);
+
+// Compatibility routes for both Netlify prefix and relative paths
 app.use('/.netlify/functions/api/auth', authRoutes);
 app.use('/.netlify/functions/api/trips', tripRoutes);
 app.use('/.netlify/functions/api/bookings', bookingRoutes);
