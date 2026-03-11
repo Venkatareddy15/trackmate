@@ -41,7 +41,7 @@ const Login = () => {
             const msg = err?.error_description || err?.details || 'An unknown error occurred during Google login popup.';
             console.error('Google Login Popup Error:', msg);
             if (msg.includes('redirect_uri_mismatch')) {
-                setError('Google OAuth Error: Please add https://trackmate-rs.netlify.app to your Google Cloud Console Authorized URIs.');
+                setError('Google OAuth Error: Please add https://trackmate-frontend.vercel.app to your Google Cloud Console Authorized URIs.');
             } else {
                 setError(`Google login failed: ${msg}`);
             }

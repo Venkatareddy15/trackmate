@@ -21,6 +21,7 @@ const io = new Server(server, {
 // Middleware
 const allowedOrigins = [
     'https://trackmate-rs.netlify.app',
+    'https://trackmate-frontend.vercel.app',
     'http://localhost:5173',
     'http://127.0.0.1:5173'
 ];
