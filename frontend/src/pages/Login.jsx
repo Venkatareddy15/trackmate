@@ -22,10 +22,11 @@ const Login = () => {
             console.log('Google Login Success Triggered. Verifying token...');
             if (!tokenResponse?.access_token) {
                 console.error('No Access Token received from Google');
-                setError('Google login failed: No access token received.'); // Set error state
+                setError('Google login failed: No access token received.');
                 return;
             }
             try {
+                // Ensure we use the correct role from the state
                 const user = await googleLogin(tokenResponse.access_token, role, true);
                 if (user.role === 'ADMIN') navigate('/dashboard/admin');
                 else if (user.role === 'TRAVELLER') navigate('/dashboard/traveller');
@@ -33,7 +34,7 @@ const Login = () => {
             } catch (err) {
                 const msg = err?.response?.data?.message || err.message || 'An unexpected error occurred during Google login.';
                 console.error('Google Login Sync Error:', msg);
-                setError(`Google login failed: ${msg}`); // Set error state
+                setError(`Google login failed: ${msg}`);
             }
         },
         onError: (err) => {

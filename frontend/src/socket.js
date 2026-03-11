@@ -1,10 +1,9 @@
 import { io } from 'socket.io-client';
 
-const socket = io(import.meta.env.VITE_API_URL 
-    ? import.meta.env.VITE_API_URL.replace('/api', '') 
-    : 'http://localhost:5001', {
-        transports: ['websocket', 'polling'],
-        withCredentials: true
-    });
+const socket = io('/', {
+    path: '/api/socket.io',
+    transports: ['websocket', 'polling'],
+    withCredentials: true
+});
 
 export default socket;

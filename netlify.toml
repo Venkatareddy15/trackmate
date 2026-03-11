@@ -3,6 +3,14 @@
   command = "npm run build"
   publish = "dist"
 
+[functions]
+  directory = "../backend"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
@@ -10,4 +18,4 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  # VITE_API_URL = "https://your-backend-url.com/api" # Set this in Netlify UI Environment Variables
+  VITE_API_URL = "/api"

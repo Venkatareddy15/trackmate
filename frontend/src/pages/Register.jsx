@@ -17,7 +17,7 @@ const Register = () => {
     const [upiId, setUpiId] = useState('');
     const [isTyping, setIsTyping] = useState(false);
 
-    const { register, googleLogin, error, loading } = useAuthStore();
+    const { register, googleLogin, error, loading, setError } = useAuthStore();
     const navigate = useNavigate();
 
     const handleGoogleLogin = useGoogleLogin({
@@ -25,22 +25,27 @@ const Register = () => {
             console.log('Google Signup Success Triggered. Verifying token...');
             if (!tokenResponse?.access_token) {
                 console.error('No Access Token received from Google during signup');
+                setError('Google signup failed: No access token received.');
                 return;
             }
             try {
+                // Ensure we use the correct role from the state
                 const user = await googleLogin(tokenResponse.access_token, role, true);
                 if (user.role === 'TRAVELLER') navigate('/dashboard/traveller');
                 else navigate('/dashboard/passenger');
             } catch (err) {
-                const msg = err?.response?.data?.message || err.message;
+                const msg = err?.response?.data?.message || err.message || 'An unexpected error occurred during Google signup.';
                 console.error('Google Register Sync Error:', msg);
+                setError(`Google signup failed: ${msg}`);
             }
         },
         onError: (err) => {
-            const msg = err?.error_description || err?.details || 'An unknown error occurred during Google signup.';
-            console.error('Google Register Popup Error:', err);
-            if (msg && msg.includes('redirect_uri_mismatch')) {
+            const msg = err?.error_description || err?.details || 'An unknown error occurred during Google signup popup.';
+            console.error('Google Register Popup Error:', msg);
+            if (msg.includes('redirect_uri_mismatch')) {
                 setError('Google OAuth Error: Please add https://trackmate-rs.netlify.app to your Google Cloud Console Authorized URIs.');
+            } else {
+                setError(`Google signup failed: ${msg}`);
             }
         }
     });
