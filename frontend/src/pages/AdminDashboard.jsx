@@ -66,7 +66,7 @@ const AdminDashboard = () => {
     };
 
     const handleHealthCheck = () => {
-        alert('System Health Check:\n\n- API Server: Online (5001)\n- Database: Connected (MongoDB)\n- Authentication: Active\n- Trip Logic: Operational\n- Notification Node: Online');
+        alert('System Health Check:\n\n- API Server: Online (Serverless)\n- Database: Connected (MongoDB)\n- Authentication: Active\n- Trip Logic: Operational\n- Notification Node: Online');
     };
 
     const fetchAdminData = async () => {
