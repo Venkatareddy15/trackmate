@@ -9,5 +9,10 @@
   ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  ],
+  "env": {
+    "VITE_GOOGLE_CLIENT_ID": "652585055664-ctj6qs8hm54lt95j6ke9p4s9e0m2qc8i.apps.googleusercontent.com",
+    "VITE_API_URL": "https://ride-sharing-mu.vercel.app/api",
+    "VITE_GOOGLE_MAPS_API_KEY": "AIzaSyA9djTdmAgfyWFcejygfZxoUaMV5MFwfNE"
+  }
 }
