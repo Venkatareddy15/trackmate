@@ -6,11 +6,16 @@ import './index.css'
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
-console.log('TrackMate Initializing with Client ID:', import.meta.env.VITE_GOOGLE_CLIENT_ID ? 'CONNECTED' : 'MISSING');
+const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+console.log('TrackMate Initializing with Client ID:', clientId ? 'CONNECTED' : 'MISSING');
+
+if (!clientId) {
+    console.error('ERROR: VITE_GOOGLE_CLIENT_ID is not set in environment variables');
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
-        <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+        <GoogleOAuthProvider clientId={clientId || ''}>
             <Router>
                 <App />
             </Router>

@@ -28,7 +28,8 @@ app.use(express.static(path.join(__dirname, '../frontend/dist')));
 const allowedOrigins = [
     'https://trackmate-rs.netlify.app',
     'https://trackmate-frontend.vercel.app',
-    'https://trackmate-combined.vercel.app', // Anticipated combined URL
+    'https://trackmate-combined.vercel.app',
+    'https://trackmate-inky.vercel.app',
     'http://localhost:5173',
     'http://127.0.0.1:5173'
 ];
