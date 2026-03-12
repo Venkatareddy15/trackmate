@@ -8,7 +8,7 @@ console.log('[SOCKET] Connecting to:', SOCKET_URL);
 
 const socket = io(SOCKET_URL, {
     path: '/socket.io',
-    transports: ['websocket', 'polling'],
+    transports: ['polling', 'websocket'],
     withCredentials: true,
     reconnection: true,
     reconnectionDelay: 1000,
@@ -17,11 +17,11 @@ const socket = io(SOCKET_URL, {
 });
 
 socket.on('connect', () => {
-    console.log('[SOCKET] Connected successfully');
+    console.log('[SOCKET] Connected successfully via', socket.io.engine.transport.name);
 });
 
 socket.on('connect_error', (error) => {
-    console.log('[SOCKET] Connection error:', error.message);
+    console.log('[SOCKET] Connection error (will retry):', error.message);
 });
 
 socket.on('disconnect', (reason) => {

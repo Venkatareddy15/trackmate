@@ -14,11 +14,28 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "*",
+        origin: function(origin, callback) {
+            const allowedOrigins = [
+                'https://trackmate-rs.netlify.app',
+                'https://trackmate-frontend.vercel.app',
+                'https://trackmate-combined.vercel.app',
+                'https://trackmate-inky.vercel.app',
+                'https://trackmate-six.vercel.app',
+                'https://trackmate-l54v.vercel.app',
+                'http://localhost:5173',
+                'http://127.0.0.1:5173'
+            ];
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
         methods: ["GET", "POST"]
     },
-    path: '/socket.io', // Ensure path matches frontend socket.js
-    addTrailingSlash: false // Better for Vercel/serverless
+    path: '/socket.io',
+    addTrailingSlash: false,
+    transports: ['polling', 'websocket']
 });
 
 // Serve frontend static files from root deployment
@@ -30,6 +47,8 @@ const allowedOrigins = [
     'https://trackmate-frontend.vercel.app',
     'https://trackmate-combined.vercel.app',
     'https://trackmate-inky.vercel.app',
+    'https://trackmate-six.vercel.app',
+    'https://trackmate-l54v.vercel.app',
     'http://localhost:5173',
     'http://127.0.0.1:5173'
 ];
