@@ -532,12 +532,22 @@ const PassengerDashboard = () => {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="text-right flex flex-col items-end gap-6 min-w-[140px]">
-                                                    <div>
-                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Standard Fare</p>
-                                                        <p className="text-4xl font-[900] text-slate-900 tracking-tighter">₹{trip.pricePerSeat}</p>
+                                                <div className="text-right flex flex-col items-end gap-4 min-w-[160px]">
+                                                    <div className="space-y-2 w-full">
+                                                        <div>
+                                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-0.5">Original Price</p>
+                                                            <p className="text-lg font-[900] text-slate-600 tracking-tighter line-through opacity-60">₹{trip.originalPrice}</p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[9px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-0.5">Distributed Price</p>
+                                                            <p className="text-lg font-[900] text-emerald-600 tracking-tighter">₹{trip.distributedPrice}</p>
+                                                        </div>
+                                                        <div className="pt-2 border-t border-slate-100">
+                                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-0.5">Per Seat Fare</p>
+                                                            <p className="text-3xl font-[900] text-slate-900 tracking-tighter">₹{trip.pricePerSeat}</p>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex gap-2">
+                                                    <div className="flex gap-2 w-full">
                                                         <motion.button
                                                             whileHover={{ scale: 1.1 }}
                                                             whileTap={{ scale: 0.9 }}
@@ -555,7 +565,7 @@ const PassengerDashboard = () => {
                                                             <MessageCircle className="w-4 h-4" />
                                                         </motion.button>
                                                     </div>
-                                                    <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600 group-hover/card:gap-4 transition-all">
+                                                    <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600 group-hover/card:gap-4 transition-all w-full justify-end">
                                                         Initiate Booking <ArrowRight className="w-4 h-4" />
                                                     </button>
                                                 </div>

@@ -12,34 +12,22 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [role, setRole] = useState('PASSENGER');
-    const [isTyping, setIsTyping] = useState(false);
+    const [googleLoading, setGoogleLoading] = useState(false);
 
     const { login, googleLogin, error, loading, setError } = useAuthStore();
     const navigate = useNavigate();
 
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
-            console.log('[LOGIN] Google OAuth Success:', {
-                hasAccessToken: !!tokenResponse?.access_token,
-                tokenLength: tokenResponse?.access_token?.length
-            });
-            
             if (!tokenResponse?.access_token) {
-                console.error('[LOGIN] No access token received from Google');
                 setError('Google login failed: No access token received');
                 return;
             }
             
+            setGoogleLoading(true);
             try {
-                console.log('[LOGIN] Sending token to backend...');
                 const user = await googleLogin(tokenResponse.access_token, role, true);
-                console.log('[LOGIN] Backend response received:', {
-                    userId: user._id,
-                    role: user.role,
-                    isNewUser: user.isNewUser
-                });
                 
-                // Redirect based on role
                 if (user.role === 'ADMIN') {
                     navigate('/dashboard/admin');
                 } else if (user.role === 'TRAVELLER') {
@@ -48,19 +36,15 @@ const Login = () => {
                     navigate('/dashboard/passenger');
                 }
             } catch (err) {
-                console.error('[LOGIN] Backend error:', {
-                    message: err?.message,
-                    response: err?.response?.data,
-                    status: err?.response?.status
-                });
                 const msg = err?.response?.data?.message || err?.message || 'Google login failed';
                 setError(msg);
+                setGoogleLoading(false);
             }
         },
         onError: (err) => {
-            console.error('[LOGIN] Google OAuth popup error:', err);
-            const msg = err?.error_description || err?.details || 'Google login popup failed';
+            const msg = err?.error_description || err?.details || 'Google login failed';
             setError(msg);
+            setGoogleLoading(false);
         },
         flow: 'implicit'
     });
@@ -90,7 +74,6 @@ const Login = () => {
 
     return (
         <div className="min-h-screen relative flex items-center justify-center px-4 py-24 bg-[#FAFAFA]">
-            {/* Subtle Gradient Background */}
             <div className={`absolute inset-0 z-0 transition-all duration-700 bg-[radial-gradient(circle_at_top_right,rgba(var(--${roleColor}-rgb),0.05),transparent_50%)]`} />
 
             <motion.div
@@ -108,7 +91,6 @@ const Login = () => {
                         <p className="text-slate-500 text-sm font-medium">Please enter your details to sign in.</p>
                     </div>
 
-                    {/* Role Selector */}
                     <div className="flex p-1 bg-slate-100 rounded-2xl mb-8">
                         {['PASSENGER', 'TRAVELLER'].map((r) => (
                             <button
@@ -189,15 +171,25 @@ const Login = () => {
                         <button
                             onClick={() => handleGoogleLogin()}
                             type="button"
-                            className="w-full flex items-center justify-center gap-3 py-4 border border-slate-200 rounded-2xl hover:bg-slate-50 transition-all font-semibold text-sm text-slate-700"
+                            disabled={googleLoading}
+                            className="w-full flex items-center justify-center gap-3 py-4 border border-slate-200 rounded-2xl hover:bg-slate-50 transition-all font-semibold text-sm text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <svg className="w-5 h-5" viewBox="0 0 24 24">
-                                <path fill="#EA4335" d="M5.266 9.765A7.077 7.077 0 0 1 12 4.909c1.69 0 3.218.6 4.418 1.582L19.91 3C17.782 1.145 15.055 0 12 0 7.273 0 3.191 2.69 1.145 6.655l4.121 3.11z" />
-                                <path fill="#34A853" d="M16.04 18.013c-1.09.593-2.346.915-3.654.915a7.077 7.077 0 0 1-6.733-4.873l-4.12 3.116C3.191 21.31 7.273 24 12 24c3.055 0 5.782-1.145 7.91-3l-3.87-2.987z" />
-                                <path fill="#4285F4" d="M19.91 21c2.254-1.99 3.636-4.936 3.636-8.273 0-.682-.109-1.364-.265-2.027H12v4.363h6.618c-.318 1.636-1.264 3.018-2.582 3.918l3.874 3z" />
-                                <path fill="#FBBC05" d="M5.266 14.235a7.07 7.07 0 0 1 0-4.47l-4.12-3.11a12.003 12.003 0 0 0 0 10.697l4.12-3.117z" />
-                            </svg>
-                            Continue with Google
+                            {googleLoading ? (
+                                <>
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    Signing in...
+                                </>
+                            ) : (
+                                <>
+                                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                        <path fill="#EA4335" d="M5.266 9.765A7.077 7.077 0 0 1 12 4.909c1.69 0 3.218.6 4.418 1.582L19.91 3C17.782 1.145 15.055 0 12 0 7.273 0 3.191 2.69 1.145 6.655l4.121 3.11z" />
+                                        <path fill="#34A853" d="M16.04 18.013c-1.09.593-2.346.915-3.654.915a7.077 7.077 0 0 1-6.733-4.873l-4.12 3.116C3.191 21.31 7.273 24 12 24c3.055 0 5.782-1.145 7.91-3l-3.87-2.987z" />
+                                        <path fill="#4285F4" d="M19.91 21c2.254-1.99 3.636-4.936 3.636-8.273 0-.682-.109-1.364-.265-2.027H12v4.363h6.618c-.318 1.636-1.264 3.018-2.582 3.918l3.874 3z" />
+                                        <path fill="#FBBC05" d="M5.266 14.235a7.07 7.07 0 0 1 0-4.47l-4.12-3.11a12.003 12.003 0 0 0 0 10.697l4.12-3.117z" />
+                                    </svg>
+                                    Continue with Google
+                                </>
+                            )}
                         </button>
 
                         <p className="mt-8 text-center text-sm text-slate-500 font-medium flex flex-col gap-4">

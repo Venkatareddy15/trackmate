@@ -94,7 +94,8 @@ router.post('/', protect, async (req, res) => {
             distance: routeMeta?.distanceValue || 0,
             duration: routeMeta?.durationValue || 0,
             routePolyline: routePolyline || req.body.routePolyline || 'NO_PATH',
-            totalSeats: req.body.availableSeats // Store initial seats as total
+            totalSeats: req.body.availableSeats,
+            pricePerSeat: req.body.distributedPrice
         };
 
         const trip = await Trip.create(tripData);

@@ -24,10 +24,10 @@ const TravellerDashboard = () => {
     const [publishedTrips, setPublishedTrips] = useState([]);
     const [pendingRequests, setPendingRequests] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [viewMode, setViewMode] = useState('grid'); // 'grid', 'list', 'map'
+    const [viewMode, setViewMode] = useState('grid');
     const [now, setNow] = useState(new Date());
+    const [isNavigating, setIsNavigating] = useState(false);
 
-    // Update 'now' every minute
     useEffect(() => {
         const interval = setInterval(() => setNow(new Date()), 60000);
         return () => clearInterval(interval);
@@ -43,7 +43,6 @@ const TravellerDashboard = () => {
             setPublishedTrips(tripsRes.data.sort((a, b) => new Date(a.departureTime) - new Date(b.departureTime)));
             setPendingRequests(requestsRes.data.filter(r => r.tripId && r.tripId.status !== 'COMPLETED' && r.tripId.status !== 'CANCELLED'));
 
-            // Calculate Stats
             const revenue = tripsRes.data.reduce((sum, t) => sum + (t.totalExpenses || 0), 0);
             const rides = tripsRes.data.length;
             const score = user.trustScore || 100;
@@ -71,7 +70,7 @@ const TravellerDashboard = () => {
     const handleRequestAction = async (bookingId, status) => {
         try {
             await API.patch(`/bookings/${bookingId}/status`, { status });
-            fetchData(); // Reload all data
+            fetchData();
         } catch (err) {
             console.error(err);
             alert('Trip update failed');
@@ -79,7 +78,44 @@ const TravellerDashboard = () => {
     };
 
     const handleCreateTrip = () => {
-        navigate('/create-trip');
+        setIsNavigating(true);
+        setTimeout(() => {
+            navigate('/create-trip');
+            setIsNavigating(false);
+        }, 300);
+    };
+
+    const handleStatClick = (statType) => {
+        setIsNavigating(true);
+        setTimeout(() => {
+            switch (statType) {
+                case 'revenue':
+                    navigate('/dashboard/traveller', { state: { scrollTo: 'earnings' } });
+                    break;
+                case 'rides':
+                    navigate('/dashboard/traveller', { state: { scrollTo: 'trips' } });
+                    break;
+                case 'trustScore':
+                    navigate('/profile');
+                    break;
+                case 'passengers':
+                    navigate('/dashboard/traveller', { state: { scrollTo: 'passengers' } });
+                    break;
+                default:
+                    break;
+            }
+            setIsNavigating(false);
+        }, 300);
+    };
+
+    const getColorStyles = (color) => {
+        const colors = {
+            emerald: { bg: 'bg-emerald-50', text: 'text-emerald-600' },
+            blue: { bg: 'bg-blue-50', text: 'text-blue-600' },
+            indigo: { bg: 'bg-indigo-50', text: 'text-indigo-600' },
+            amber: { bg: 'bg-amber-50', text: 'text-amber-600' }
+        };
+        return colors[color] || colors.emerald;
     };
 
     const containerVariants = {
@@ -101,7 +137,6 @@ const TravellerDashboard = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 pt-32 sm:pt-40 px-3 sm:px-4 pb-20 selection:bg-blue-500/30">
-            {/* Background Atmosphere */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
                 <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-blue-500/5 blur-[120px] rounded-full" />
                 <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-indigo-500/5 blur-[120px] rounded-full" />
@@ -113,7 +148,6 @@ const TravellerDashboard = () => {
                 animate="visible"
                 className="max-w-7xl mx-auto space-y-8 sm:space-y-12 relative z-10"
             >
-                {/* Header Section */}
                 <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-end justify-between gap-8 pb-8 border-b border-slate-200/50">
                     <div className="space-y-4">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 mb-2">
@@ -129,46 +163,53 @@ const TravellerDashboard = () => {
                     <motion.button
                         layoutId="publish-button"
                         onClick={handleCreateTrip}
+                        disabled={isNavigating}
                         whileHover={{ scale: 1.05, y: -4 }}
                         whileTap={{ scale: 0.95 }}
-                        className="btn-premium !bg-blue-600 !shadow-blue-500/20"
+                        className="btn-premium !bg-blue-600 !shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Plus className="w-5 h-5 opacity-50" />
                         <span>Publish New Mission</span>
                     </motion.button>
                 </motion.div>
 
-                {/* Performance Overview */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                     {[
-                        { label: 'Asset Revenue', value: stats.revenue, prefix: '₹', icon: Wallet, color: 'emerald', trend: '+12%' },
-                        { label: 'Successful Hubs', value: stats.rides, icon: TrendingUp, color: 'blue' },
-                        { label: 'Trust Index', value: stats.trustScore, suffix: '%', icon: ShieldCheck, color: 'indigo', badge: 'Elite' },
-                        { label: 'Network Output', value: stats.passengers, icon: Users, color: 'amber' },
-                    ].map((stat, i) => (
-                        <motion.div
-                            key={i}
-                            variants={itemVariants}
-                            whileHover={{ y: -8, scale: 1.02, rotateX: 2, rotateY: 2 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="physical-glass p-8 !rounded-[2.5rem] premium-card cursor-pointer border-transparent"
-                        >
-                            <div className="flex justify-between items-start mb-6">
-                                <div className={`p-4 bg-${stat.color}-50 text-${stat.color}-600 rounded-2xl`}>
-                                    <stat.icon className="w-6 h-6" />
+                        { label: 'Asset Revenue', value: stats.revenue, prefix: '₹', icon: Wallet, color: 'emerald', trend: '+12%', type: 'revenue' },
+                        { label: 'Successful Hubs', value: stats.rides, icon: TrendingUp, color: 'blue', type: 'rides' },
+                        { label: 'Trust Index', value: stats.trustScore, suffix: '%', icon: ShieldCheck, color: 'indigo', badge: 'Elite', type: 'trustScore' },
+                        { label: 'Network Output', value: stats.passengers, icon: Users, color: 'amber', type: 'passengers' },
+                    ].map((stat, i) => {
+                        const colorStyle = getColorStyles(stat.color);
+                        return (
+                            <motion.button
+                                key={i}
+                                variants={itemVariants}
+                                whileHover={{ y: -8, scale: 1.02, rotateX: 2, rotateY: 2 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => handleStatClick(stat.type)}
+                                disabled={isNavigating}
+                                className={`physical-glass p-8 !rounded-[2.5rem] premium-card cursor-pointer border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all text-left group hover:shadow-lg`}
+                            >
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className={`p-4 ${colorStyle.bg} ${colorStyle.text} rounded-2xl`}>
+                                        <stat.icon className="w-6 h-6" />
+                                    </div>
+                                    {stat.trend && <span className="bg-emerald-50 text-emerald-600 text-[10px] px-3 py-1 rounded-full font-black tracking-widest border border-emerald-100/50">{stat.trend}</span>}
+                                    {stat.badge && <span className="bg-indigo-50 text-indigo-600 text-[10px] px-3 py-1 rounded-full font-black tracking-widest border border-indigo-100/50">{stat.badge}</span>}
                                 </div>
-                                {stat.trend && <span className="bg-emerald-50 text-emerald-600 text-[10px] px-3 py-1 rounded-full font-black tracking-widest border border-emerald-100/50">{stat.trend}</span>}
-                                {stat.badge && <span className="bg-indigo-50 text-indigo-600 text-[10px] px-3 py-1 rounded-full font-black tracking-widest border border-indigo-100/50">{stat.badge}</span>}
-                            </div>
-                            <h3 className="text-4xl font-[900] text-slate-900 tracking-tighter mb-1">
-                                {stat.prefix}{stat.value.toLocaleString()}{stat.suffix}
-                            </h3>
-                            <p className="text-slate-400 text-[11px] uppercase font-black tracking-[0.2em]">{stat.label}</p>
-                        </motion.div>
-                    ))}
+                                <h3 className="text-4xl font-[900] text-slate-900 tracking-tighter mb-1">
+                                    {stat.prefix}{stat.value.toLocaleString()}{stat.suffix}
+                                </h3>
+                                <p className="text-slate-400 text-[11px] uppercase font-black tracking-[0.2em]">{stat.label}</p>
+                                <div className="mt-4 flex items-center gap-2 text-blue-600 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                                    View Details <ArrowRight className="w-3 h-3" />
+                                </div>
+                            </motion.button>
+                        );
+                    })}
                 </div>
 
-                {/* INCOMING REQUESTS DECK */}
                 {pendingRequests.length > 0 && (
                     <motion.div variants={itemVariants} className="space-y-8">
                         <div className="flex items-center gap-4 px-2">
@@ -234,7 +275,7 @@ const TravellerDashboard = () => {
                                                     whileHover={{ scale: 1.05 }}
                                                     whileTap={{ scale: 0.95 }}
                                                     onClick={() => handleRequestAction(req._id, 'ACCEPTED')}
-                                                    className="w-12 h-12 flex items-center justify-center bg-emerald-500 text-white rounded-2xl shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition-all border border-emerald-400/20"
+                                                    className="w-12 h-12 flex items-center justify-center bg-emerald-500 text-white rounded-2xl shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition-all border border-emerald-400/20 active:scale-95"
                                                     title="Accept"
                                                 >
                                                     <CheckCircle className="w-5 h-5" />
@@ -243,7 +284,7 @@ const TravellerDashboard = () => {
                                                     whileHover={{ scale: 1.05 }}
                                                     whileTap={{ scale: 0.95 }}
                                                     onClick={() => handleRequestAction(req._id, 'REJECTED')}
-                                                    className="w-12 h-12 flex items-center justify-center bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-500 hover:text-white transition-all border border-rose-100"
+                                                    className="w-12 h-12 flex items-center justify-center bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-500 hover:text-white transition-all border border-rose-100 active:scale-95"
                                                     title="Decline"
                                                 >
                                                     <X className="w-5 h-5" />
@@ -252,8 +293,8 @@ const TravellerDashboard = () => {
                                                     whileHover={{ scale: 1.05 }}
                                                     whileTap={{ scale: 0.95 }}
                                                     onClick={() => window.location.href = `tel:${req.passengerId.phone}`}
-                                                    className="w-12 h-12 flex items-center justify-center bg-slate-900 text-white rounded-2xl shadow-lg hover:bg-slate-800 transition-all border border-slate-700"
-                                                    title="Comms"
+                                                    className="w-12 h-12 flex items-center justify-center bg-slate-900 text-white rounded-2xl shadow-lg hover:bg-slate-800 transition-all border border-slate-700 active:scale-95"
+                                                    title="Call"
                                                 >
                                                     <Phone className="w-5 h-5" />
                                                 </motion.button>
@@ -261,7 +302,7 @@ const TravellerDashboard = () => {
                                                     whileHover={{ scale: 1.05 }}
                                                     whileTap={{ scale: 0.95 }}
                                                     onClick={() => window.location.href = `sms:${req.passengerId.phone}`}
-                                                    className="w-12 h-12 flex items-center justify-center bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-blue-500 hover:border-blue-500/30 transition-all"
+                                                    className="w-12 h-12 flex items-center justify-center bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-blue-500 hover:border-blue-500/30 transition-all active:scale-95"
                                                     title="Message"
                                                 >
                                                     <MessageCircle className="w-5 h-5" />
@@ -275,7 +316,6 @@ const TravellerDashboard = () => {
                     </motion.div>
                 )}
 
-                {/* Trip Management Deck */}
                 <motion.div variants={itemVariants} className="space-y-8">
                     <div className="flex items-center justify-between px-2">
                         <div className="flex items-center gap-6">
@@ -321,7 +361,7 @@ const TravellerDashboard = () => {
                                 <React.Fragment key="list-grid-view">
                                     {publishedTrips.filter(t =>
                                         !['COMPLETED', 'CANCELLED'].includes(t.status) &&
-                                        new Date(t.departureTime) > new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hour grace for active operations
+                                        new Date(t.departureTime) > new Date(Date.now() - 2 * 60 * 60 * 1000)
                                     ).map((trip, idx) => (
                                         <motion.div
                                             key={trip._id}
@@ -386,7 +426,7 @@ const TravellerDashboard = () => {
                                                         whileHover={{ scale: 1.1, rotate: 10 }}
                                                         whileTap={{ scale: 0.9 }}
                                                         onClick={() => navigate(`/trip/${trip._id}`)}
-                                                        className="w-12 h-12 flex items-center justify-center bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-blue-500 hover:border-blue-500/30 transition-all shadow-sm"
+                                                        className="w-12 h-12 flex items-center justify-center bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-blue-500 hover:border-blue-500/30 transition-all shadow-sm active:scale-95"
                                                     >
                                                         <MessageCircle className="w-5 h-5" />
                                                     </motion.button>
@@ -394,7 +434,7 @@ const TravellerDashboard = () => {
                                                         whileHover={{ scale: 1.05 }}
                                                         whileTap={{ scale: 0.95 }}
                                                         onClick={() => navigate(`/trip/${trip._id}`)}
-                                                        className="btn-premium !rounded-2xl !py-3.5 !px-8 !text-[11px] !tracking-[0.2em]"
+                                                        className="btn-premium !rounded-2xl !py-3.5 !px-8 !text-[11px] !tracking-[0.2em] active:scale-95"
                                                     >
                                                         Command
                                                     </motion.button>
@@ -407,20 +447,23 @@ const TravellerDashboard = () => {
                                         !['COMPLETED', 'CANCELLED'].includes(t.status) &&
                                         new Date(t.departureTime) > new Date(Date.now() - 2 * 60 * 60 * 1000)
                                     ).length === 0 && !loading && (
-                                            <div className="lg:col-span-2 py-32 text-center bg-white rounded-[4rem] border border-dashed border-slate-200 shadow-xl shadow-slate-200/50">
-                                                <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-                                                    <Plus className="w-10 h-10 text-slate-400" />
-                                                </div>
-                                                <h3 className="text-3xl font-black text-slate-900 mb-4">No Active Trips</h3>
-                                                <p className="text-slate-500 text-lg max-w-sm mx-auto mb-10">You haven't posted any trips yet. Share your first trip today.</p>
-                                                <button
-                                                    onClick={handleCreateTrip}
-                                                    className="bg-blue-600 text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest"
-                                                >
-                                                    Publish First Trip
-                                                </button>
+                                        <div className="lg:col-span-2 py-32 text-center bg-white rounded-[4rem] border border-dashed border-slate-200 shadow-xl shadow-slate-200/50">
+                                            <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+                                                <Plus className="w-10 h-10 text-slate-400" />
                                             </div>
-                                        )}
+                                            <h3 className="text-3xl font-black text-slate-900 mb-4">No Active Trips</h3>
+                                            <p className="text-slate-500 text-lg max-w-sm mx-auto mb-10">You haven't posted any trips yet. Share your first trip today.</p>
+                                            <motion.button
+                                                onClick={handleCreateTrip}
+                                                disabled={isNavigating}
+                                                whileHover={{ scale: 1.02 }}
+                                                whileTap={{ scale: 0.98 }}
+                                                className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                            >
+                                                Publish First Trip
+                                            </motion.button>
+                                        </div>
+                                    )}
                                 </React.Fragment>
                             )}
                         </AnimatePresence>

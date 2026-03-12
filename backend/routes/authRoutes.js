@@ -13,26 +13,21 @@ router.post('/register', async (req, res) => {
     try {
         const { name, email, password, role, phone, upiId } = req.body;
 
-        // Block public ADMIN registration
         if (role === 'ADMIN') {
             return res.status(401).json({ message: 'Unauthorized: Admin accounts cannot be created publicly.' });
         }
 
-        // Find existing user by email
         let user = await User.findOne({ email });
 
         if (user) {
-            // If user exists, check if they already have this role
             if (user.role.includes(role)) {
                 return res.status(400).json({ message: 'Account already active with this role. Please login.' });
             }
-            // Add the new role to existing account
             user.role.push(role);
             if (phone) user.phone = phone;
             if (upiId) user.upiId = upiId;
             await user.save();
         } else {
-            // Create new user
             user = await User.create({
                 name,
                 email,
@@ -44,125 +39,89 @@ router.post('/register', async (req, res) => {
         }
 
         if (user) {
-            // Send Welcome Email
-            const { sendWelcomeEmail } = require('../utils/emailService');
-            sendWelcomeEmail(email, name);
+            setImmediate(() => {
+                try {
+                    const { sendWelcomeEmail } = require('../utils/emailService');
+                    sendWelcomeEmail(email, name).catch(() => {});
+                } catch (err) {}
+            });
 
             res.status(201).json({
                 _id: user._id,
                 name: user.name,
                 email: user.email,
-                phone: user.phone,
-                upiId: user.upiId,
-                role: role, // Return the requested role as active
-                roles: user.role, // Return all roles
+                phone: user.phone || '',
+                upiId: user.upiId || '',
+                role: role,
+                roles: user.role,
                 token: generateToken(user._id)
             });
         }
     } catch (error) {
+        console.error('[REGISTER] Error:', error.message);
         res.status(500).json({ message: error.message });
     }
 });
 
-// Google Auth
+// Google Auth - FIXED
 const { OAuth2Client } = require('google-auth-library');
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 router.post('/google', async (req, res) => {
     try {
         const { token, role, isAccessToken } = req.body;
-        let name, email, picture, googleId;
-
-        // Validate token
+        
         if (!token) {
-            console.error('[GOOGLE_AUTH] No token provided');
             return res.status(400).json({ message: 'Token is required' });
         }
 
-        console.log('[GOOGLE_AUTH] Request received:', { 
-            role, 
-            isAccessToken, 
-            tokenLength: token.length,
-            tokenPrefix: token.substring(0, 20) + '...'
-        });
+        let name, email, picture, googleId;
 
-        // Verify token based on type
-        if (isAccessToken) {
-            // Handle Access Token from useGoogleLogin hook
-            console.log('[GOOGLE_AUTH] Verifying Access Token via Google userinfo API...');
-            try {
+        try {
+            if (isAccessToken) {
                 const response = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                    timeout: 10000
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    timeout: 8000
                 });
                 
-                name = response.data.name;
+                name = response.data.name || 'User';
                 email = response.data.email;
-                picture = response.data.picture;
+                picture = response.data.picture || '';
                 googleId = response.data.sub;
-                
-                console.log('[GOOGLE_AUTH] Access Token verified successfully:', { email, name });
-            } catch (googleError) {
-                console.error('[GOOGLE_AUTH] Access Token verification failed:', {
-                    status: googleError.response?.status,
-                    statusText: googleError.response?.statusText,
-                    data: googleError.response?.data,
-                    message: googleError.message
-                });
-                return res.status(401).json({
-                    message: 'Invalid Google Access Token',
-                    error: googleError.response?.data?.error_description || googleError.message
-                });
-            }
-        } else {
-            // Handle ID Token from GoogleLogin component
-            console.log('[GOOGLE_AUTH] Verifying ID Token via google-auth-library...');
-            try {
+            } else {
                 const ticket = await googleClient.verifyIdToken({
                     idToken: token,
                     audience: process.env.GOOGLE_CLIENT_ID,
                 });
                 const payload = ticket.getPayload();
                 
-                name = payload.name;
+                name = payload.name || 'User';
                 email = payload.email;
-                picture = payload.picture;
+                picture = payload.picture || '';
                 googleId = payload.sub;
-                
-                console.log('[GOOGLE_AUTH] ID Token verified successfully:', { email, name });
-            } catch (ticketError) {
-                console.error('[GOOGLE_AUTH] ID Token verification failed:', ticketError.message);
-                return res.status(401).json({
-                    message: 'Invalid Google ID Token',
-                    error: ticketError.message
-                });
             }
+        } catch (verifyError) {
+            console.error('[GOOGLE] Token verification failed:', verifyError.message);
+            return res.status(401).json({
+                message: 'Invalid Google token',
+                error: verifyError.message
+            });
         }
 
-        // Validate email
         if (!email) {
-            console.error('[GOOGLE_AUTH] Email missing from Google response');
             return res.status(400).json({ message: 'Google account must have an email' });
         }
 
-        // Admin protection
         const AUTHORIZED_ADMIN = process.env.ADMIN_EMAIL;
         if (role === 'ADMIN' && (!AUTHORIZED_ADMIN || email.toLowerCase() !== AUTHORIZED_ADMIN.toLowerCase())) {
-            console.log('[GOOGLE_AUTH] Unauthorized admin attempt:', email);
             return res.status(401).json({ message: 'Unauthorized: Admin accounts cannot be created publicly' });
         }
 
-        // Find or create user
         let user = await User.findOne({ email });
         let isNewUser = false;
         let activeRole = role || 'PASSENGER';
 
         if (!user) {
-            // New user registration
-            console.log('[GOOGLE_AUTH] Creating new user:', { email, role: activeRole });
-            
             user = await User.create({
                 name,
                 email,
@@ -170,98 +129,88 @@ router.post('/google', async (req, res) => {
                 role: [activeRole],
                 profileImage: picture,
                 googleId,
-                isVerified: true
+                isVerified: true,
+                phone: '',
+                upiId: '',
+                trustScore: 100,
+                ratingAvg: 5.0,
+                carbonSaved: 0,
+                rideCredits: 0,
+                loyaltyPoints: 0,
+                level: 'Green Newbie'
             });
             
             isNewUser = true;
-            console.log('[GOOGLE_AUTH] New user created successfully:', user._id);
 
-            // Send welcome email
-            try {
-                const { sendWelcomeEmail } = require('../utils/emailService');
-                await sendWelcomeEmail(email, name);
-            } catch (emailError) {
-                console.error('[GOOGLE_AUTH] Welcome email failed:', emailError.message);
-                // Don't fail the registration if email fails
-            }
+            setImmediate(() => {
+                try {
+                    const { sendWelcomeEmail } = require('../utils/emailService');
+                    sendWelcomeEmail(email, name).catch(() => {});
+                } catch (err) {}
+            });
         } else {
-            // Existing user login
-            console.log('[GOOGLE_AUTH] Existing user found:', { email, currentRoles: user.role });
+            let needsUpdate = false;
+            let updateData = {};
             
-            // Update googleId if missing
             if (!user.googleId) {
-                user.googleId = googleId;
+                updateData.googleId = googleId;
+                needsUpdate = true;
             }
 
-            // Update profile image if changed
             if (picture && picture !== user.profileImage) {
-                user.profileImage = picture;
+                updateData.profileImage = picture;
+                needsUpdate = true;
             }
 
-            // Handle role assignment
-            if (role) {
-                if (user.role.includes(role)) {
-                    activeRole = role;
-                    console.log('[GOOGLE_AUTH] User already has role:', role);
-                } else {
-                    user.role.push(role);
-                    activeRole = role;
-                    console.log('[GOOGLE_AUTH] Added new role to user:', role);
-                }
+            if (role && !user.role.includes(role)) {
+                updateData.role = [...user.role, role];
+                needsUpdate = true;
+            }
+
+            if (needsUpdate) {
+                await User.updateOne({ _id: user._id }, updateData);
+            }
+
+            if (role && user.role.includes(role)) {
+                activeRole = role;
+            } else if (role && updateData.role) {
+                activeRole = role;
             } else {
                 activeRole = user.role[0];
-                console.log('[GOOGLE_AUTH] Using default role:', activeRole);
             }
-            
-            await user.save();
         }
 
-        // Admin auto-assignment
         if (AUTHORIZED_ADMIN && email.toLowerCase() === AUTHORIZED_ADMIN.toLowerCase()) {
             if (!user.role.includes('ADMIN')) {
-                user.role.push('ADMIN');
-                await user.save();
-                console.log('[GOOGLE_AUTH] Admin role auto-assigned');
+                await User.updateOne({ _id: user._id }, { $push: { role: 'ADMIN' } });
             }
             activeRole = 'ADMIN';
         }
 
-        // Generate response
-        const response = {
+        const responseData = {
             _id: user._id,
             name: user.name,
             email: user.email,
-            phone: user.phone,
-            upiId: user.upiId,
+            phone: user.phone || '',
+            upiId: user.upiId || '',
             role: activeRole,
             roles: user.role,
-            profileImage: user.profileImage,
-            verified: user.isVerified,
-            trustScore: user.trustScore,
-            ratingAvg: user.ratingAvg,
-            carbonSaved: user.carbonSaved,
-            rideCredits: user.rideCredits,
-            loyaltyPoints: user.loyaltyPoints,
-            level: user.level,
+            profileImage: user.profileImage || '',
+            verified: user.isVerified || false,
+            trustScore: user.trustScore || 100,
+            ratingAvg: user.ratingAvg || 5.0,
+            carbonSaved: user.carbonSaved || 0,
+            rideCredits: user.rideCredits || 0,
+            loyaltyPoints: user.loyaltyPoints || 0,
+            level: user.level || 'Green Newbie',
             createdAt: user.createdAt,
             isNewUser,
             token: generateToken(user._id)
         };
 
-        console.log('[GOOGLE_AUTH] Authentication successful:', { 
-            userId: user._id, 
-            email, 
-            activeRole, 
-            isNewUser 
-        });
-
-        res.json(response);
+        res.json(responseData);
     } catch (error) {
-        console.error('[GOOGLE_AUTH] Unexpected error:', {
-            message: error.message,
-            stack: error.stack,
-            name: error.name
-        });
+        console.error('[GOOGLE_AUTH] Unexpected error:', error);
         res.status(500).json({
             message: 'Google authentication failed',
             error: error.message
@@ -274,43 +223,33 @@ router.post('/login', async (req, res) => {
     try {
         const { email, password, role } = req.body;
 
-        // Find user by email
         let user = await User.findOne({ email });
 
         const AUTHORIZED_ADMIN = process.env.ADMIN_EMAIL;
         const IS_AUTHORIZED_EMAIL = AUTHORIZED_ADMIN && email.toLowerCase() === AUTHORIZED_ADMIN.toLowerCase();
 
-        console.log(`Login attempt: ${email}, Role: ${role}, Authorized: ${IS_AUTHORIZED_EMAIL}`);
-
-        // 🛡️ Extra Security for Admin Role
         if (role === 'ADMIN') {
             if (!IS_AUTHORIZED_EMAIL) {
-                console.log('Admin login denied: Unauthorized email');
                 return res.status(401).json({ message: 'Unauthorized: Access Denied.' });
             }
             if (password !== process.env.ADMIN_PASSWORD) {
-                console.log('Admin login denied: Invalid password for authorized email');
                 return res.status(401).json({ message: 'Invalid Admin Credentials.' });
             }
 
-            // Create admin user on the fly if authenticated via .env but record missing in DB
             if (!user) {
-                console.log('Creating new admin user record');
                 user = await User.create({
                     name: 'TrackMate Admin',
                     email: email.toLowerCase(),
-                    password: password, // Will be hashed by model
+                    password: password,
                     role: ['ADMIN'],
                     isVerified: true,
                     trustScore: 100
                 });
             } else if (!user.role.includes('ADMIN')) {
-                console.log('Upgrading existing user to admin');
                 user.role.push('ADMIN');
                 await user.save();
             }
 
-            console.log('Admin authenticated successfully');
             return res.json({
                 _id: user._id,
                 name: user.name,
@@ -327,25 +266,19 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        // Standard Login Procedure for other roles
         if (!user) {
-            console.log('Login denied: User not found in DB');
             return res.status(401).json({ message: 'Invalid credentials. Please try again.' });
         }
 
         const isPasswordCorrect = await user.matchPassword(password);
-        console.log(`Password check: ${isPasswordCorrect}`);
 
         if (isPasswordCorrect) {
-            // Auto-assign ADMIN role if it's the authorized email logging in via regular form
             if (IS_AUTHORIZED_EMAIL && !user.role.includes('ADMIN')) {
                 user.role.push('ADMIN');
                 await user.save();
             }
 
-            // Verify if user has the requested role
             if (role && !user.role.includes(role)) {
-                console.log(`Role mismatch: User roles ${user.role}, Requested ${role}`);
                 return res.status(401).json({ message: `Account not authorized for ${role} role.` });
             }
 
@@ -367,6 +300,7 @@ router.post('/login', async (req, res) => {
             res.status(401).json({ message: 'Invalid credentials. Please try again.' });
         }
     } catch (error) {
+        console.error('[LOGIN] Error:', error.message);
         res.status(500).json({ message: error.message });
     }
 });
@@ -408,6 +342,7 @@ router.put('/profile', protect, async (req, res) => {
             res.status(404).json({ message: 'User not found' });
         }
     } catch (error) {
+        console.error('[UPDATE_PROFILE] Error:', error.message);
         res.status(500).json({ message: error.message });
     }
 });
@@ -419,7 +354,7 @@ router.post('/verify-vehicle', protect, async (req, res) => {
         const user = await User.findById(req.user._id);
 
         if (!user) return res.status(404).json({ message: 'User not found' });
-        if (user.role !== 'TRAVELLER') return res.status(403).json({ message: 'Only Travellers need vehicle verification' });
+        if (!user.role.includes('TRAVELLER')) return res.status(403).json({ message: 'Only Travellers need vehicle verification' });
 
         user.verificationStatus = 'PENDING';
         user.verificationDetails = {
@@ -432,6 +367,7 @@ router.post('/verify-vehicle', protect, async (req, res) => {
         const updatedUser = await user.save();
         res.json(updatedUser);
     } catch (error) {
+        console.error('[VERIFY_VEHICLE] Error:', error.message);
         res.status(500).json({ message: error.message });
     }
 });
@@ -445,6 +381,7 @@ router.get('/admin/users', protect, async (req, res) => {
         const users = await User.find().sort({ createdAt: -1 });
         res.json(users);
     } catch (error) {
+        console.error('[ADMIN_USERS] Error:', error.message);
         res.status(500).json({ message: error.message });
     }
 });
@@ -458,6 +395,7 @@ router.delete('/admin/users/:id', protect, async (req, res) => {
         await User.findByIdAndDelete(req.params.id);
         res.json({ message: 'User deleted successfully' });
     } catch (error) {
+        console.error('[DELETE_USER] Error:', error.message);
         res.status(500).json({ message: error.message });
     }
 });
@@ -473,11 +411,12 @@ router.patch('/admin/approve-verification/:id', protect, async (req, res) => {
 
         user.verificationStatus = 'VERIFIED';
         user.isVerified = true;
-        user.trustScore = Math.min(100, user.trustScore + 20); // Trust boost
+        user.trustScore = Math.min(100, user.trustScore + 20);
 
         await user.save();
         res.json({ message: 'User verified successfully', user });
     } catch (error) {
+        console.error('[APPROVE_VERIFICATION] Error:', error.message);
         res.status(500).json({ message: error.message });
     }
 });
@@ -494,6 +433,7 @@ router.put('/password', protect, async (req, res) => {
             res.status(401).json({ message: 'Invalid current password' });
         }
     } catch (error) {
+        console.error('[CHANGE_PASSWORD] Error:', error.message);
         res.status(500).json({ message: error.message });
     }
 });

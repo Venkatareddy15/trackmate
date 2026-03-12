@@ -14,6 +14,8 @@ const tripSchema = new mongoose.Schema({
     availableSeats: { type: Number, required: true, min: 0 },
     totalSeats: { type: Number, default: 0 },
     pricePerSeat: { type: Number, required: true },
+    originalPrice: { type: Number, required: true },
+    distributedPrice: { type: Number, required: true },
 
     // Route Meta
     distance: { type: Number }, // in meters

@@ -46,7 +46,8 @@ const CreateTrip = () => {
         endPoint: { address: '', coordinates: [] },
         departureTime: defaultDeparture,
         availableSeats: 4,
-        pricePerSeat: 150,
+        originalPrice: 150,
+        distributedPrice: 150,
         vehicleDetails: ''
     });
     const [pickupConfirmed, setPickupConfirmed] = useState(false);
@@ -414,18 +415,34 @@ const CreateTrip = () => {
 
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label className="block text-xs font-bold text-slate-500">Price per Seat (₹)</label>
+                            <label className="block text-xs font-bold text-slate-500">Original Price (₹)</label>
                             <div className="relative">
                                 <span className="absolute left-4 top-3.5 text-slate-400 font-bold">₹</span>
                                 <input
                                     type="number"
                                     required
-                                    value={formData.pricePerSeat}
-                                    onChange={(e) => setFormData({ ...formData, pricePerSeat: e.target.value })}
+                                    value={formData.originalPrice}
+                                    onChange={(e) => setFormData({ ...formData, originalPrice: e.target.value })}
                                     className="w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-emerald-500 outline-none transition-all text-slate-900 font-medium"
                                 />
                             </div>
                         </div>
+                        <div className="space-y-2">
+                            <label className="block text-xs font-bold text-slate-500">Distributed Price (₹)</label>
+                            <div className="relative">
+                                <span className="absolute left-4 top-3.5 text-slate-400 font-bold">₹</span>
+                                <input
+                                    type="number"
+                                    required
+                                    value={formData.distributedPrice}
+                                    onChange={(e) => setFormData({ ...formData, distributedPrice: e.target.value })}
+                                    className="w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-emerald-500 outline-none transition-all text-slate-900 font-medium"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="block text-xs font-bold text-slate-500">Vehicle Info</label>
                             <input
